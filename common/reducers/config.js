@@ -17,7 +17,7 @@ export type State = {
 export const INITIAL_STATE: State = {
   languageSelection: languages[0].sign,
   nodeSelection: Object.keys(NODES)[0],
-  gasPriceGwei: 21
+  gasPriceGwei: 22
 };
 
 function changeLanguage(state: State, action: ChangeLanguageAction): State {
