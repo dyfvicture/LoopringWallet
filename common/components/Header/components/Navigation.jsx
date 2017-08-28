@@ -17,6 +17,10 @@ const tabs = [
   {
     name: 'NAV_SendExchange',
     link: "send-exchange"
+  },
+  {
+    name: 'NAV_Contracts',
+    link: 'contracts'
   }
 ];
 
