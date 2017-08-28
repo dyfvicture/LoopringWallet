@@ -26,24 +26,25 @@ var sendTxCtrl = function($scope, $sce, walletService) {
 
   $scope.tx = {
     // if there is no gasLimit or gas key in the URI, use the default value. Otherwise use value of gas or gasLimit. gasLimit wins over gas if both present
-    gasLimit: globalFuncs.urlGet('gaslimit') != null ||
+    gasLimit:
+      globalFuncs.urlGet('gaslimit') != null ||
       globalFuncs.urlGet('gas') != null
-      ? globalFuncs.urlGet('gaslimit') != null
-        ? globalFuncs.urlGet('gaslimit')
-        : globalFuncs.urlGet('gas')
-      : globalFuncs.defaultTxGasLimit,
+        ? globalFuncs.urlGet('gaslimit') != null
+          ? globalFuncs.urlGet('gaslimit')
+          : globalFuncs.urlGet('gas')
+        : globalFuncs.defaultTxGasLimit,
     data: globalFuncs.urlGet('data') == null ? '' : globalFuncs.urlGet('data'),
     to: globalFuncs.urlGet('to') == null ? '' : globalFuncs.urlGet('to'),
     unit: 'ether',
-    value: globalFuncs.urlGet('value') == null
-      ? ''
-      : globalFuncs.urlGet('value'),
+    value:
+      globalFuncs.urlGet('value') == null ? '' : globalFuncs.urlGet('value'),
     nonce: null,
     gasPrice: null,
     donate: false,
-    tokenSymbol: globalFuncs.urlGet('tokenSymbol') == null
-      ? false
-      : globalFuncs.urlGet('tokenSymbol'),
+    tokenSymbol:
+      globalFuncs.urlGet('tokenSymbol') == null
+        ? false
+        : globalFuncs.urlGet('tokenSymbol'),
     readOnly: globalFuncs.urlGet('readOnly') == null ? false : true
   };
   $scope.setSendMode = function(sendMode, tokenId = '', tokenSymbol = '') {
@@ -200,9 +201,8 @@ var sendTxCtrl = function($scope, $sce, walletService) {
         $scope.showAdvance = $scope.customGas[i].data != '' ? true : false;
         $scope.tx.gasLimit = $scope.customGas[i].gasLimit;
         $scope.tx.data = $scope.customGas[i].data;
-        $scope.customGasMsg = $scope.customGas[i].msg != ''
-          ? $scope.customGas[i].msg
-          : '';
+        $scope.customGasMsg =
+          $scope.customGas[i].msg != '' ? $scope.customGas[i].msg : '';
         return;
       }
     }
@@ -287,11 +287,12 @@ var sendTxCtrl = function($scope, $sce, walletService) {
     $scope.sendTxModal.close();
     uiFuncs.sendTx($scope.signedTx, function(resp) {
       if (!resp.isError) {
-        var bExStr = $scope.ajaxReq.type != nodes.nodeTypes.Custom
-          ? "<a class='strong' href='" +
+        var bExStr =
+          $scope.ajaxReq.type != nodes.nodeTypes.Custom
+            ? "<a class='strong' href='" +
               $scope.ajaxReq.blockExplorerTX.replace('[[txHash]]', resp.data) +
               "' class='strong' target='_blank'>View TX</a><br />"
-          : '';
+            : '';
         var emailLink =
           '<a class="strong" href="mailto:support@myetherwallet.com?Subject=Issue%20regarding%20my%20TX%20&Body=Hi%20Taylor%2C%20%0A%0AI%20have%20a%20question%20concerning%20my%20transaction.%20%0A%0AI%20was%20attempting%20to%3A%0A-%20Send%20ETH%0A-%20Send%20Tokens%0A-%20Send%20via%20my%20Ledger%0A-%20Send%20via%20my%20TREZOR%0A-%20Send%20via%20the%20offline%20tab%0A%0AFrom%20address%3A%20%0A%0ATo%20address%3A%20%0A%0AUnfortunately%20it%3A%0A-%20Never%20showed%20on%20the%20blockchain%0A-%20Failed%20due%20to%20out%20of%20gas%0A-%20Failed%20for%20another%20reason%0A-%20Never%20showed%20up%20in%20the%20account%20I%20was%20sending%20to%0A%0A%5B%20INSERT%20MORE%20INFORMATION%20HERE%20%5D%0A%0AThank%20you%0A%0A' +
           '%0A%20TO%20' +

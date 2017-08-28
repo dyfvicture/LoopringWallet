@@ -8,19 +8,23 @@ import Help from 'containers/Tabs/Help';
 import Swap from 'containers/Tabs/Swap';
 import SendTransaction from 'containers/Tabs/SendTransaction';
 import Contracts from 'containers/Tabs/Contracts';
-import SendExchange from 'containers/Tabs/SendExchange';
+import SendLoopringOrder from 'containers/Tabs/SendLoopringOrder';
 export const history = getHistory();
 
 export const Routing = () =>
   <Route name="App" path="" component={App}>
-    <Route name="GenerateWallet" path="/" component={GenerateWallet} />
-    <Route name="ViewWallet" path="/view-wallet" component={ViewWallet} />
+    <Route name="ViewWallet" path="/" component={GenerateWallet} />
+    <Route name="GenerateWallet" path="/view-wallet" component={ViewWallet} />
     <Route name="Help" path="/help" component={Help} />
     <Route name="Swap" path="/swap" component={Swap} />
     <Route name="Send" path="/send-transaction" component={SendTransaction} />
     <Route name="Contracts" path="/contracts" component={Contracts} />
 
-    <Route name="Exchange" path="/send-exchange" component={SendExchange} />
+    <Route
+      name="Exchange"
+      path="/send-loopring-order"
+      component={SendLoopringOrder}
+    />
 
     <Redirect from="/*" to="/" />
   </Route>;

@@ -15,8 +15,8 @@ const tabs = [
     link: 'send-transaction'
   },
   {
-    name: 'NAV_SendExchange',
-    link: "send-exchange"
+    name: 'NAV_SendLoopringOrder',
+    link: 'send-loopring-order'
   },
   {
     name: 'NAV_Contracts',

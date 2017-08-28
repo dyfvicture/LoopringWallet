@@ -22,7 +22,7 @@ module.exports = {
     NAV_Swap: 'Swap ',
     NAV_ViewWallet: '查看钱包信息 ',
     NAV_YourWallets: '你的钱包 ',
-    NAV_SendExchange: '发送代币互换',
+    NAV_SendLoopringOrder: '发送路印交易',
 
     /* General */
     x_Access: 'Access ',

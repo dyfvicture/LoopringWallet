@@ -20,7 +20,7 @@ export default class GasField extends React.Component {
           </label>
           <input
             className={`form-control ${isFinite(parseFloat(value)) &&
-              parseFloat(value) > 0
+            parseFloat(value) > 0
               ? 'is-valid'
               : 'is-invalid'}`}
             type="text"

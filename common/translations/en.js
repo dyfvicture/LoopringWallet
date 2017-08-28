@@ -23,6 +23,7 @@ module.exports = {
     NAV_Swap: 'Swap ',
     NAV_ViewWallet: 'View Wallet Info ',
     NAV_YourWallets: 'Your Wallets ',
+    NAV_SendLoopringOrder: 'Send Loopring Order',
 
     /* General */
     x_Access: 'Access ',
