@@ -131,7 +131,7 @@ export class SendExchange extends React.Component {
   }
 
   render() {
-    const unlocked = !!this.props.wallet;
+    const unlocked = this.props.wallet;
     const hasEnoughBalance = false;
     const {
       to,
@@ -159,7 +159,7 @@ export class SendExchange extends React.Component {
                 </p>
               </div>}
 
-            <UnlockHeader title={'NAV_SendEther'} />
+            <UnlockHeader title={'NAV_SendLoopringOrder'} />
 
             {unlocked &&
               <article className="row">
@@ -168,7 +168,7 @@ export class SendExchange extends React.Component {
                   <div style={{ maxWidth: 350 }}>
                     <BalanceSidebar />
                     <hr />
-                    <Donate onDonate={this.onNewTx} />
+                    {/*<Donate onDonate={this.onNewTx}/>*/}
                   </div>
                 </section>
 

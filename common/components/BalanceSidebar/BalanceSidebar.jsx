@@ -163,9 +163,9 @@ export class BalanceSidebar extends React.Component {
                   CHF
                 </li>}
             </ul>
-            <Link to={'swap'} className="btn btn-primary btn-sm">
-              Swap via bity
-            </Link>
+            {/*<Link to={'swap'} className="btn btn-primary btn-sm">*/}
+            {/*Swap via bity*/}
+            {/*</Link>*/}
           </section>}
       </aside>
     );

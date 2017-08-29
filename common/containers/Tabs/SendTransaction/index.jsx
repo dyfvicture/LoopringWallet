@@ -168,7 +168,7 @@ export class SendTransaction extends React.Component {
                   <div style={{ maxWidth: 350 }}>
                     <BalanceSidebar />
                     <hr />
-                    <Donate onDonate={this.onNewTx} />
+                    {/*<Donate onDonate={this.onNewTx} />*/}
                   </div>
                 </section>
 
