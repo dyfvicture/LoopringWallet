@@ -21,6 +21,10 @@ export default class BaseNode {
     throw new Error('Implement me');
   }
 
+  async getAllowance(transaction: TransactionWithoutGas): Promise<Big> {
+    throw new Error('Implement me');
+  }
+
   async generateTransaction(
     _tx: Transaction,
     _wallet: BaseWallet

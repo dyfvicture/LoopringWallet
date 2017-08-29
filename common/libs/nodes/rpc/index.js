@@ -22,6 +22,7 @@ import { isValidETHAddress } from 'libs/validators';
 
 export default class RpcNode extends BaseNode {
   client: RPCClient;
+
   constructor(endpoint: string) {
     super();
     this.client = new RPCClient(endpoint);
@@ -38,6 +39,15 @@ export default class RpcNode extends BaseNode {
 
   async estimateGas(transaction: TransactionWithoutGas): Promise<Big> {
     return this.client.call(estimateGas(transaction)).then(response => {
+      if (response.error) {
+        throw new Error('estimateGas error');
+      }
+      return new Big(Number(response.result));
+    });
+  }
+
+  async getAllowance(transaction: TransactionWithoutGas): Promise<Big> {
+    return this.client.call(ethCall(transaction)).then(response => {
       if (response.error) {
         throw new Error('estimateGas error');
       }
