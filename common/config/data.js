@@ -1,13 +1,13 @@
 // @flow
 import { RPCNode } from 'libs/nodes';
 
-export const DONATION_ADDRESSES_MAP = {
+export const LOOPRING_CONTRACT_ADDRESSES_MAP = {
   BTC: '1MEWT2SGbqtz6mPCgFcnea8XmWV5Z4Wc6',
-  ETH: '0x7cB57B5A97eAbe94205C07890BE4c1aD31E486A8',
+  ETH: '0xEF68e7C694F40c8202821eDF525dE3782458639f',
   REP: '0x7cB57B5A97eAbe94205C07890BE4c1aD31E486A8'
 };
 
-export const donationAddressMap = DONATION_ADDRESSES_MAP;
+export const donationAddressMap = LOOPRING_CONTRACT_ADDRESSES_MAP;
 
 export const gasPriceDefaults = {
   gasPriceMinGwei: 1,

@@ -24,6 +24,7 @@ module.exports = {
     NAV_ViewWallet: 'View Wallet Info ',
     NAV_YourWallets: 'Your Wallets ',
     NAV_SendLoopringOrder: 'Send Loopring Order',
+    Approve_Allowance: 'Approve Allowance',
 
     /* General */
     x_Access: 'Access ',
@@ -168,10 +169,13 @@ module.exports = {
 
     /* Sending Ether and Tokens */
     SEND_addr: 'To Address ',
+    Allow_addr: 'To Address',
+    Allow_amount: 'Allow Amount ',
     SEND_amount: 'Amount to Send ',
     SEND_amount_short: 'Amount ',
     SEND_custom: 'Add Custom Token ',
     SEND_gas: 'Gas ',
+    Allow_Total: ' Allow Entire Balance',
     SEND_TransferTotal: 'Send Entire Balance ',
     SEND_generate: 'Generate Transaction ',
     SEND_raw: 'Raw Transaction ',

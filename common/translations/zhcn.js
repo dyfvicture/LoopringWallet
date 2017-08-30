@@ -59,6 +59,8 @@ module.exports = {
     MEW_Tagline: '开源JavaScript客户端以太币钱包 ',
     CX_Tagline: '开源JavaScript客户端以太币钱包Chrome扩展 ',
 
+    Approve_Allowance: '代币授权',
+
     /* Footer */
     FOOTER_1: '一个开源的生成以太坊钱包和发送交易的JavaScript客户端工具 ',
     FOOTER_1b: '创建者 ',
@@ -119,10 +121,13 @@ module.exports = {
 
     /* Sending Ether and Tokens */
     SEND_addr: '发送至地址： ',
+    Allow_addr: '授权给',
+    Allow_amount: '授权数量',
     SEND_amount: '转账数额： ',
     SEND_amount_short: '数额 ',
     // SEND_custom                 : 'Custom ',
     SEND_gas: 'Gas ',
+    Allow_Total: '授权所有余额',
     SEND_TransferTotal: '发送所有余额 ',
     SEND_generate: '生成交易 ',
     SEND_raw: '未生效交易 ',

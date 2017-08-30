@@ -19,7 +19,7 @@ export default class AmountField extends React.Component {
     return (
       <div>
         <label>
-          {translate('SEND_amount')}
+          {translate('Allow_amount')}
         </label>
         <div className="input-group col-sm-11">
           <input
@@ -35,7 +35,7 @@ export default class AmountField extends React.Component {
           />
           <UnitDropdown
             value={unit}
-            options={['ether'].concat(this.props.tokens)}
+            options={[].concat(this.props.tokens)}
             onChange={isReadonly ? void 0 : this.onUnitChange}
           />
         </div>
@@ -43,7 +43,7 @@ export default class AmountField extends React.Component {
           <p>
             <a onClick={this.onSendEverything}>
               <span className="strong">
-                {translate('SEND_TransferTotal')}
+                {translate('Allow_Total')}
               </span>
             </a>
           </p>}
