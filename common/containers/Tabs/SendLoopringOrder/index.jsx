@@ -4,12 +4,11 @@ import React from 'react';
 import translate from 'translations';
 import { UnlockHeader } from 'components/ui';
 import {
-  Donate,
-  DataField,
-  CustomMessage,
-  GasField,
+  AddressField,
   AmountField,
-  AddressField
+  CustomMessage,
+  DataField,
+  GasField
 } from './components';
 import { BalanceSidebar } from 'components';
 import pickBy from 'lodash/pickBy';
@@ -18,30 +17,30 @@ import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
 // import type { Transaction } from './types';
 import customMessages from './messages';
+import type { NetworkConfig, Token } from 'config/data';
 import { donationAddressMap } from 'config/data';
 import { isValidETHAddress } from 'libs/validators';
 import {
-  getNodeLib,
+  getGasPriceGwei,
   getNetworkConfig,
-  getGasPriceGwei
+  getNodeLib
 } from 'selectors/config';
-import { getTokens } from 'selectors/wallet';
-import type { Token, NetworkConfig } from 'config/data';
+import type { TokenBalance } from 'selectors/wallet';
+import { getTokenBalances, getTokens } from 'selectors/wallet';
 import Big from 'bignumber.js';
 import { valueToHex } from 'libs/values';
 import ERC20 from 'libs/erc20';
-import type { TokenBalance } from 'selectors/wallet';
-import { getTokenBalances } from 'selectors/wallet';
 import type { RPCNode } from 'libs/nodes';
 import type {
-  TransactionWithoutGas,
-  BroadcastTransaction
+  BroadcastTransaction,
+  TransactionWithoutGas
 } from 'libs/transaction';
 import type { UNIT } from 'libs/units';
 import { toWei } from 'libs/units';
 import { formatGasLimit } from 'utils/formatters';
-import { showNotification } from 'actions/notifications';
 import type { ShowNotificationAction } from 'actions/notifications';
+import { showNotification } from 'actions/notifications';
+import { sha3, setLengthLeft, toBuffer } from 'ethereumjs-util';
 
 type State = {
   hasQueryString: boolean,
@@ -65,9 +64,6 @@ function getParam(query: { [string]: string }, key: string) {
 
   return query[keys[index]];
 }
-
-// TODO query string
-// TODO how to handle DATA?
 
 type Props = {
   location: {
@@ -94,10 +90,9 @@ export class SendExchange extends React.Component {
   state: State = {
     hasQueryString: false,
     readOnly: false,
-    // FIXME use correct defaults
     to: '',
     value: '',
-    unit: 'ether',
+    unit: 'LRC',
     gasLimit: '21000',
     data: '',
     gasChanged: false,
@@ -112,12 +107,6 @@ export class SendExchange extends React.Component {
   }
 
   componentDidUpdate(_prevProps: Props, prevState: State) {
-    // if gas is not changed
-    // and we have valid tx
-    // and relevant fields changed
-    // estimate gas
-    // TODO we might want to listen to gas price changes here
-    // TODO debunce the call
     if (
       !this.state.gasChanged &&
       this.isValid() &&
@@ -131,7 +120,7 @@ export class SendExchange extends React.Component {
   }
 
   render() {
-    const unlocked = this.props.wallet;
+    const unlocked = !!this.props.wallet;
     const hasEnoughBalance = false;
     const {
       to,
@@ -168,7 +157,6 @@ export class SendExchange extends React.Component {
                   <div style={{ maxWidth: 350 }}>
                     <BalanceSidebar />
                     <hr />
-                    {/*<Donate onDonate={this.onNewTx}/>*/}
                   </div>
                 </section>
 
@@ -188,14 +176,10 @@ export class SendExchange extends React.Component {
 
                   <div className="row form-group">
                     <h4 className="col-xs-12">
-                      {translate('SEND_trans')}
+                      {translate('Approve_Allowance')}
                     </h4>
                   </div>
-                  <AddressField
-                    placeholder={donationAddressMap.ETH}
-                    value={this.state.to}
-                    onChange={readOnly ? null : this.onAddressChange}
-                  />
+                  <AddressField value={donationAddressMap.ETH} />
                   <AmountField
                     value={value}
                     unit={unit}
@@ -209,11 +193,7 @@ export class SendExchange extends React.Component {
                     value={gasLimit}
                     onChange={readOnly ? void 0 : this.onGasChange}
                   />
-                  {unit === 'ether' &&
-                    <DataField
-                      value={data}
-                      onChange={readOnly ? void 0 : this.onDataChange}
-                    />}
+                  <DataField value={data} />
                   <CustomMessage message={customMessage} />
 
                   <div className="row form-group">
@@ -365,22 +345,6 @@ export class SendExchange extends React.Component {
     });
   };
 
-  onAddressChange = (value: string) => {
-    this.setState({
-      to: value
-    });
-  };
-
-  onDataChange = (value: string) => {
-    if (this.state.unit !== 'ether') {
-      return;
-    }
-    this.setState({
-      ...this.state,
-      data: value
-    });
-  };
-
   onGasChange = (value: string) => {
     this.setState({ gasLimit: value, gasChanged: true });
   };
@@ -399,9 +363,35 @@ export class SendExchange extends React.Component {
       }
       value = token.balance.toString();
     }
+
+    const method =
+      '0x' + sha3('approve(address, uint256)').toString('hex').slice(0, 8);
+
+    const address = setLengthLeft(
+      toBuffer(donationAddressMap.ETH),
+      32
+    ).toString('hex');
+
+    let data =
+      method +
+      address +
+      setLengthLeft(toBuffer('0x' + parseInt(value).toString(16)), 32).toString(
+        'hex'
+      );
+
+    if (!value || value === '') {
+      data =
+        method +
+        address +
+        setLengthLeft(toBuffer('0x' + parseInt('0').toString(16)), 32).toString(
+          'hex'
+        );
+    }
+
     this.setState({
-      value,
-      unit
+      value: value,
+      unit: unit,
+      data: data
     });
   };
 
@@ -412,9 +402,9 @@ export class SendExchange extends React.Component {
     try {
       const transaction = await nodeLib.generateTransaction(
         {
-          to: this.state.to,
+          to: donationAddressMap.ETH,
           from: address,
-          value: this.state.value,
+          value: '0',
           gasLimit: this.state.gasLimit,
           gasPrice: this.props.gasPrice,
           data: this.state.data,

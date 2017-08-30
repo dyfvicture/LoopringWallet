@@ -14,37 +14,25 @@ export default class DataField extends React.Component {
   };
   render() {
     const { value } = this.props;
-    const { expanded } = this.state;
     const valid = isValidHex(value || '');
-    const readOnly = !this.props.onChange;
+    const readOnly = true;
 
     return (
       <div className="row form-group">
         <div className="col-sm-11 clearfix">
-          {!expanded &&
-            <a onClick={this.expand}>
-              <p className="strong">
-                {translate('TRANS_advanced')}
-              </p>
-            </a>}
-          {expanded &&
-            <section>
-              <div className="form-group">
-                <label>
-                  {translate('TRANS_data')}
-                </label>
-                <input
-                  className={`form-control ${valid
-                    ? 'is-valid'
-                    : 'is-invalid'}`}
-                  type="text"
-                  placeholder={readOnly ? '' : donationAddressMap.ETH}
-                  value={value || ''}
-                  disabled={readOnly}
-                  onChange={this.onChange}
-                />
-              </div>
-            </section>}
+          <section>
+            <div className="form-group">
+              <label>
+                {translate('TRANS_data')}
+              </label>
+              <input
+                className={`form-control ${valid ? 'is-valid' : 'is-invalid'}`}
+                type="text"
+                value={value || ''}
+                disabled={readOnly}
+              />
+            </div>
+          </section>
         </div>
       </div>
     );

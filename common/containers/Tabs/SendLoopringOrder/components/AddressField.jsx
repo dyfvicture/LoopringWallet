@@ -10,8 +10,7 @@ import translate from 'translations';
 
 type PublicProps = {
   placeholder: string,
-  value: string,
-  onChange?: (value: string) => void
+  value: string
 };
 
 export class AddressField extends React.Component {
@@ -21,21 +20,20 @@ export class AddressField extends React.Component {
   };
 
   render() {
-    const { placeholder, value, ensAddress } = this.props;
-    const isReadonly = !this.props.onChange;
+    const { value, ensAddress } = this.props;
+    const isReadonly = true;
     return (
       <div className="row form-group">
         <div className="col-xs-11">
           <label>
-            {translate('SEND_addr')}:
+            {translate('Allow_addr')}:
           </label>
           <input
             className={`form-control ${isValidENSorEtherAddress(value)
               ? 'is-valid'
               : 'is-invalid'}`}
             type="text"
-            placeholder={placeholder}
-            onChange={this.onChange}
+            value={value}
             disabled={isReadonly}
           />
           {!!ensAddress &&
@@ -50,19 +48,6 @@ export class AddressField extends React.Component {
       </div>
     );
   }
-
-  onChange = (e: SyntheticInputEvent) => {
-    const newValue = e.target.value;
-    const { onChange } = this.props;
-    if (!onChange) {
-      return;
-    }
-    // FIXME debounce?
-    if (isValidENSAddress(newValue)) {
-      this.props.resolveEnsName(newValue);
-    }
-    onChange(newValue);
-  };
 }
 
 function mapStateToProps(state: State, props: PublicProps) {
