@@ -31,18 +31,6 @@ const WALLETS = {
     },
     unlock: unlockPrivateKey
   },
-  'mnemonic-phrase': {
-    lid: 'x_Mnemonic',
-    component: MnemonicDecrypt
-  },
-  'ledger-nano-s': {
-    lid: 'x_Ledger',
-    component: LedgerNanoSDecrypt
-  },
-  trezor: {
-    lid: 'x_Trezor',
-    component: TrezorDecrypt
-  },
   'view-only': {
     lid: 'View with Address Only',
     component: ViewOnlyDecrypt
