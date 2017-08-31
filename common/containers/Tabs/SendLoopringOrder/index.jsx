@@ -5,25 +5,28 @@ import translate from 'translations';
 import { UnlockHeader } from 'components/ui';
 import {
   AddressField,
-  AmountField,
+  AllowanceAmountField,
+  BuyAmountField,
+  SellAmountField,
   CustomMessage,
   DataField,
-  GasField
+  GasField,
+  ConfirmationModal
 } from './components';
 import { BalanceSidebar } from 'components';
 import pickBy from 'lodash/pickBy';
 import type { State as AppState } from 'reducers';
 import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
-// import type { Transaction } from './types';
 import customMessages from './messages';
-import type { NetworkConfig, Token } from 'config/data';
+import type { NetworkConfig, Token, NodeConfig } from 'config/data';
 import { donationAddressMap } from 'config/data';
 import { isValidETHAddress } from 'libs/validators';
 import {
   getGasPriceGwei,
   getNetworkConfig,
-  getNodeLib
+  getNodeLib,
+  getNodeConfig
 } from 'selectors/config';
 import type { TokenBalance } from 'selectors/wallet';
 import { getTokenBalances, getTokens } from 'selectors/wallet';
@@ -46,12 +49,17 @@ type State = {
   hasQueryString: boolean,
   readOnly: boolean,
   to: string,
-  value: string,
-  // $FlowFixMe - Comes from getParam not validating unit
-  unit: UNIT,
+  buyAmount: string,
+  sellAmount: string,
+  allowAmount: string,
+  buyUnit: UNIT,
+  sellUnit: UNIT,
+  allowUnit: UNIT,
   gasLimit: string,
   data: string,
   gasChanged: boolean,
+  showTxConfirm: boolean,
+  showAllow: boolean,
   transaction: ?BroadcastTransaction
 };
 
@@ -74,6 +82,7 @@ type Props = {
   wallet: BaseWallet,
   balance: Big,
   nodeLib: RPCNode,
+  node: NodeConfig,
   network: NetworkConfig,
   tokens: Token[],
   tokenBalances: TokenBalance[],
@@ -90,12 +99,17 @@ export class SendExchange extends React.Component {
   state: State = {
     hasQueryString: false,
     readOnly: false,
-    to: '',
-    value: '',
-    unit: 'LRC',
+    buyAmount: '',
+    sellAmount: '',
+    allowAmount: '',
+    buyUnit: 'ether',
+    sellUnit: 'ether',
+    allowUnit: 'ether',
     gasLimit: '21000',
     data: '',
     gasChanged: false,
+    showTxConfirm: false,
+    showAllow: false,
     transaction: null
   };
 
@@ -121,21 +135,23 @@ export class SendExchange extends React.Component {
 
   render() {
     const unlocked = !!this.props.wallet;
-    const hasEnoughBalance = false;
     const {
       to,
-      value,
-      unit,
+      buyAmount,
+      sellAmount,
+      allowAmount,
+      buyUnit,
+      sellUnit,
+      allowUnit,
       gasLimit,
       data,
       readOnly,
       hasQueryString,
+      showTxConfirm,
+      showAllow,
       transaction
     } = this.state;
     const customMessage = customMessages.find(m => m.to === to);
-
-    // tokens
-    // ng-show="token.balance!=0 && token.balance!='loading' || token.type!=='default' || tokenVisibility=='shown'"
 
     return (
       <section className="container" style={{ minHeight: '50%' }}>
@@ -161,98 +177,124 @@ export class SendExchange extends React.Component {
                 </section>
 
                 <section className="col-sm-8">
-                  {readOnly &&
-                    !hasEnoughBalance &&
-                    <div className="row form-group">
-                      <div className="alert alert-danger col-xs-12 clearfix">
-                        <strong>
-                          Warning! You do not have enough funds to complete this
-                          swap.
-                        </strong>
-                        <br />
-                        Please add more funds or access a different wallet.
-                      </div>
-                    </div>}
-
                   <div className="row form-group">
                     <h4 className="col-xs-12">
-                      {translate('Approve_Allowance')}
+                      {translate('SEND_trans')}
                     </h4>
                   </div>
-                  <AddressField value={donationAddressMap.ETH} />
-                  <AmountField
-                    value={value}
-                    unit={unit}
+                  <SellAmountField
+                    value={sellAmount}
+                    unit={sellUnit}
                     tokens={this.props.tokenBalances
-                      .filter(token => !token.balance.eq(0))
+                      // .filter(token => !token.balance.eq(0))
                       .map(token => token.symbol)
                       .sort()}
-                    onChange={readOnly ? void 0 : this.onAmountChange}
+                    toAllow={this.toAllow}
+                    onChange={readOnly ? void 0 : this.onSellAmountChange}
                   />
-                  <GasField
-                    value={gasLimit}
-                    onChange={readOnly ? void 0 : this.onGasChange}
+                  <BuyAmountField
+                    value={buyAmount}
+                    unit={buyUnit}
+                    tokens={this.props.tokenBalances
+                      // .filter(token => !token.balance.eq(0))
+                      .map(token => token.symbol)
+                      .sort()}
+                    onChange={readOnly ? void 0 : this.onBuyAmountChange}
                   />
-                  <DataField value={data} />
-                  <CustomMessage message={customMessage} />
-
-                  <div className="row form-group">
-                    <div className="col-xs-12 clearfix">
-                      <a
-                        className="btn btn-info btn-block"
-                        onClick={this.generateTx}
-                      >
-                        {translate('SEND_generate')}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="row form-group">
-                    <div className="col-sm-6">
-                      <label>
-                        {translate('SEND_raw')}
-                      </label>
-                      <textarea
-                        className="form-control"
-                        value={transaction ? transaction.rawTx : ''}
-                        rows="4"
-                        readOnly
-                      />
-                    </div>
-                    <div className="col-sm-6">
-                      <label>
-                        {translate('SEND_signed')}
-                      </label>
-                      <textarea
-                        className="form-control"
-                        value={transaction ? transaction.signedTx : ''}
-                        rows="4"
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
                   <div className="form-group">
                     <a
                       className="btn btn-primary btn-block col-sm-11"
-                      data-toggle="modal"
-                      data-target="#SendExchange"
+                      onClick={this.submitTx}
                     >
-                      {translate('SEND_trans')}
+                      {translate('Submit_tx')}
                     </a>
                   </div>
                 </section>
-                {'' /* <!-- / Content --> */}
-                {
-                  '' /* @@if (site === 'mew' ) { @@include( './sendTx-content.tpl', { "site": "mew" } ) }
-            @@if (site === 'cx'  ) { @@include( './sendTx-content.tpl', { "site": "cx"  } ) }
+                {showAllow &&
+                  <section className="col-sm-8">
+                    <div className="row form-group">
+                      <h4 className="col-xs-12">
+                        {translate('Approve_Allowance')}
+                      </h4>
+                    </div>
+                    <AddressField value={donationAddressMap.ETH} />
+                    <AllowanceAmountField
+                      title="Allow_amount"
+                      value={allowAmount}
+                      unit={allowUnit}
+                      tokens={this.props.tokenBalances
+                        // .filter(token => !token.balance.eq(0))
+                        .map(token => token.symbol)
+                        .sort()}
+                      onChange={
+                        readOnly ? void 0 : this.onAllowanceAmountChange
+                      }
+                    />
+                    <GasField
+                      value={gasLimit}
+                      onChange={readOnly ? void 0 : this.onGasChange}
+                    />
+                    <DataField value={data} />
+                    <CustomMessage message={customMessage} />
 
-            @@if (site === 'mew' ) { @@include( './sendTx-modal.tpl',   { "site": "mew" } ) }
-            @@if (site === 'cx'  ) { @@include( './sendTx-modal.tpl',   { "site": "cx"  } ) } */
-                }
+                    <div className="row form-group">
+                      <div className="col-xs-12 clearfix">
+                        <a
+                          className="btn btn-info btn-block"
+                          onClick={this.generateTx}
+                        >
+                          {translate('SEND_generate')}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="row form-group">
+                      <div className="col-sm-6">
+                        <label>
+                          {translate('SEND_raw')}
+                        </label>
+                        <textarea
+                          className="form-control"
+                          value={transaction ? transaction.rawTx : ''}
+                          rows="4"
+                          readOnly
+                        />
+                      </div>
+                      <div className="col-sm-6">
+                        <label>
+                          {translate('SEND_signed')}
+                        </label>
+                        <textarea
+                          className="form-control"
+                          value={transaction ? transaction.signedTx : ''}
+                          rows="4"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <a
+                        className="btn btn-primary btn-block col-sm-11"
+                        onClick={this.openTxModal}
+                      >
+                        {translate('SEND_trans')}
+                      </a>
+                    </div>
+                  </section>}
               </article>}
           </main>
         </div>
+        {transaction &&
+          showTxConfirm &&
+          <ConfirmationModal
+            wallet={this.props.wallet}
+            node={this.props.node}
+            signedTransaction={transaction.signedTx}
+            allowanceValue={this.state.value}
+            onCancel={this.cancelTx}
+            onConfirm={this.confirmTx}
+          />}
       </section>
     );
   }
@@ -261,7 +303,6 @@ export class SendExchange extends React.Component {
     const query = this.props.location.query;
     const to = getParam(query, 'to');
     const data = getParam(query, 'data');
-    // FIXME validate token against presets
     const unit = getParam(query, 'tokenSymbol');
     const value = getParam(query, 'value');
     let gasLimit = getParam(query, 'gas');
@@ -349,8 +390,7 @@ export class SendExchange extends React.Component {
     this.setState({ gasLimit: value, gasChanged: true });
   };
 
-  onAmountChange = (value: string, unit: string) => {
-    // TODO sub gas for eth
+  onAllowanceAmountChange = (value: string, unit: string) => {
     if (value === 'everything') {
       if (unit === 'ether') {
         value = this.props.balance.toString();
@@ -388,10 +428,33 @@ export class SendExchange extends React.Component {
         );
     }
 
+    let toAddress = '';
+
+    const token = this.props.tokens.find(token => token.symbol === unit);
+
+    if (token) {
+      toAddress = token.address;
+    }
+
     this.setState({
-      value: value,
-      unit: unit,
+      to: toAddress,
+      allowAmount: value,
+      allowUnit: unit,
       data: data
+    });
+  };
+
+  onBuyAmountChange = (value: string, unit: string) => {
+    this.setState({
+      buyAmount: value,
+      buyUnit: unit
+    });
+  };
+
+  onSellAmountChange = (value: string, unit: string) => {
+    this.setState({
+      sellAmount: value,
+      sellUnit: unit
     });
   };
 
@@ -402,7 +465,7 @@ export class SendExchange extends React.Component {
     try {
       const transaction = await nodeLib.generateTransaction(
         {
-          to: donationAddressMap.ETH,
+          to: this.state.to,
           from: address,
           value: '0',
           gasLimit: this.state.gasLimit,
@@ -418,6 +481,29 @@ export class SendExchange extends React.Component {
       this.props.showNotification('danger', err.message, 5000);
     }
   };
+
+  toAllow = () => {
+    this.setState({
+      showAllow: true
+    });
+  };
+
+  openTxModal = () => {
+    if (this.state.transaction) {
+      this.setState({ showTxConfirm: true });
+    }
+  };
+
+  cancelTx = () => {
+    this.setState({ showTxConfirm: false });
+  };
+
+  confirmTx = (rawtx: string, tx: EthTx) => {
+    console.log(rawtx);
+    console.log(tx);
+  };
+
+  submitTx = () => {};
 }
 
 function mapStateToProps(state: AppState) {
@@ -425,6 +511,7 @@ function mapStateToProps(state: AppState) {
     wallet: state.wallet.inst,
     balance: state.wallet.balance,
     tokenBalances: getTokenBalances(state),
+    node: getNodeConfig(state),
     nodeLib: getNodeLib(state),
     network: getNetworkConfig(state),
     tokens: getTokens(state),

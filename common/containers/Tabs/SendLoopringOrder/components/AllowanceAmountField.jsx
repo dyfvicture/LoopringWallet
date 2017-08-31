@@ -6,25 +6,26 @@ import UnitDropdown from './UnitDropdown';
 type Props = {
   value: string,
   unit: string,
+  title: string,
   tokens: string[],
   onChange?: (value: string, unit: string) => void
 };
 
-export default class AmountField extends React.Component {
+export default class AllowanceAmountField extends React.Component {
   props: Props;
 
   render() {
-    const { value, unit, onChange } = this.props;
+    const { title, value, unit, onChange } = this.props;
     const isReadonly = !onChange;
     return (
       <div>
         <label>
-          {translate('Allow_amount')}
+          {translate(title)}
         </label>
         <div className="input-group col-sm-11">
           <input
             className={`form-control ${isFinite(Number(value)) &&
-            Number(value) > 0
+            Number(value) >= 0
               ? 'is-valid'
               : 'is-invalid'}`}
             type="text"

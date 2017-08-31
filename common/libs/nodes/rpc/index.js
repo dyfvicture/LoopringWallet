@@ -131,7 +131,7 @@ export default class RpcNode extends BaseNode {
       const valueWei = new Big(toWei(new Big(tx.value), 'ether'));
       const balanceWei = new Big(balance.result);
       if (valueWei.gte(balanceWei)) {
-        throw new Error(translate('GETH_Balance'));
+        // throw new Error(translate('GETH_Balance'));
       }
 
       const rawTx = {

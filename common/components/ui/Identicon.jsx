@@ -11,10 +11,12 @@ type Props = {
 
 export default function Identicon(props: Props) {
   const size = props.size || '4rem';
-  // FIXME breaks on failed checksums
-  const identiconDataUrl = isValidETHAddress(props.address.toLowerCase())
-    ? toDataUrl(props.address.toLowerCase())
-    : '';
+  let identiconDataUrl = '';
+  if (props.address) {
+    identiconDataUrl = isValidETHAddress(props.address.toLowerCase())
+      ? toDataUrl(props.address.toLowerCase())
+      : '';
+  }
   return (
     <div
       style={{ position: 'relative', width: size, height: size }}

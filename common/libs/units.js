@@ -42,3 +42,15 @@ export function toEther(number: Big, unit: UNIT) {
 export function toWei(number: Big, unit: UNIT): Big {
   return number.times(getValueOfUnit(unit));
 }
+
+export function toUnit(number: Big, fromUnit: UNIT, toUnit: UNIT): Big {
+  return toWei(number, fromUnit).div(getValueOfUnit(toUnit));
+}
+
+export function toTokenUnit(number: Big, token: Token): Big {
+  return number.times(new Big(10).pow(token.decimal));
+}
+
+export function toTokenDisplay(number: Big, token: Token): Big {
+  return number.times(new Big(10).pow(-token.decimal));
+}

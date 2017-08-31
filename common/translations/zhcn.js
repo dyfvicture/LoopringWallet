@@ -123,6 +123,13 @@ module.exports = {
     SEND_addr: '发送至地址： ',
     Allow_addr: '授权给',
     Allow_amount: '授权数量',
+    Sell_amount: '卖出数量',
+    Sell_all: '卖出所有',
+    Buy_amount: '买入数量',
+    Current_Allowance: '当前授权额度是:',
+    To_allow: ' 额度不足，请先去授权',
+    Submit_tx: '提交订单',
+
     SEND_amount: '转账数额： ',
     SEND_amount_short: '数额 ',
     // SEND_custom                 : 'Custom ',

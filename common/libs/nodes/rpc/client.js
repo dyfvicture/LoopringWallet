@@ -34,12 +34,13 @@ export function getBalance(address: string): GetBalanceRequest {
 }
 
 export function ethCall<T: *>(transaction: T): CallRequest {
-  return {
-    id: id(),
-    jsonrpc: '2.0',
-    method: 'eth_call',
-    params: [transaction, 'pending']
-  };
+  if (tag)
+    return {
+      id: id(),
+      jsonrpc: '2.0',
+      method: 'eth_call',
+      params: [transaction, 'latest']
+    };
 }
 
 export function getTransactionCount(
@@ -55,6 +56,7 @@ export function getTransactionCount(
 
 export default class RPCClient {
   endpoint: string;
+
   constructor(endpoint: string) {
     this.endpoint = endpoint;
   }

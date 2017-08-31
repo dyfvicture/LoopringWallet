@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import closeIcon from 'assets/images/icon-x.svg';
 
 import './Modal.scss';
@@ -18,7 +17,8 @@ type Props = {
       | 'warning'
       | 'danger'
       | 'link',
-    onClick: () => void
+    disabled?: boolean,
+    onClick?: () => void
   }[],
   handleClose: () => void,
   children: any
@@ -26,27 +26,6 @@ type Props = {
 
 export default class Modal extends Component {
   props: Props;
-  static propTypes = {
-    isOpen: PropTypes.bool,
-    title: PropTypes.node.isRequired,
-    children: PropTypes.node,
-    buttons: PropTypes.arrayOf(
-      PropTypes.shape({
-        text: PropTypes.node.isRequired,
-        type: PropTypes.oneOf([
-          'default',
-          'primary',
-          'success',
-          'info',
-          'warning',
-          'danger',
-          'link'
-        ]),
-        onClick: PropTypes.func.isRequired
-      })
-    ),
-    handleClose: PropTypes.func.isRequired
-  };
 
   componentDidMount() {
     this.updateBodyClass();
@@ -95,7 +74,12 @@ export default class Modal extends Component {
       }
 
       return (
-        <button className={btnClass} onClick={btn.onClick} key={idx}>
+        <button
+          className={btnClass}
+          onClick={btn.onClick}
+          key={idx}
+          disabled={btn.disabled}
+        >
           {btn.text}
         </button>
       );
