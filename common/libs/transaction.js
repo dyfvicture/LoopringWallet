@@ -11,6 +11,15 @@ import type { BaseWallet } from 'libs/wallet';
 import type { Token } from 'config/data';
 import type EthTx from 'ethereumjs-tx';
 
+export type EthCallTransaction = {
+  from?: string,
+  to: string,
+  gas?: string,
+  gasPrice?: string,
+  value?: string,
+  data?: string
+};
+
 export type TransactionWithoutGas = {|
   from: string,
   to: string,
@@ -19,6 +28,20 @@ export type TransactionWithoutGas = {|
   data?: string,
   chainId?: number
 |};
+
+export type CompleteTransaction = {
+  hash: string,
+  nonce: string,
+  blockHash?: string,
+  blockNumber?: string,
+  transactionIndex?: string,
+  from: string,
+  to?: string,
+  value: string,
+  gasPrice: string,
+  gas: string,
+  input: string
+};
 
 export type Transaction = {|
   ...TransactionWithoutGas,

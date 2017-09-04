@@ -3,7 +3,9 @@ import Big from 'bignumber.js';
 import type {
   TransactionWithoutGas,
   Transaction,
-  BroadcastTransaction
+  BroadcastTransaction,
+  CompleteTransaction,
+  EthCallTransaction
 } from 'libs/transaction';
 import type { Token } from 'config/data';
 import type { BaseWallet } from 'libs/wallet';
@@ -21,7 +23,7 @@ export default class BaseNode {
     throw new Error('Implement me');
   }
 
-  async getAllowance(transaction: TransactionWithoutGas): Promise<Big> {
+  async getAllowance(transaction: EthCallTransaction): Promise<Big> {
     throw new Error('Implement me');
   }
 
@@ -29,6 +31,26 @@ export default class BaseNode {
     _tx: Transaction,
     _wallet: BaseWallet
   ): Promise<BroadcastTransaction> {
+    throw new Error('Implement me');
+  }
+
+  async generateTransactionWithNonce(
+    _tx: Transaction,
+    _wallet: BaseWallet,
+    _nonce: string
+  ): Promise<BroadcastTransaction> {
+    throw new Error('Implement me');
+  }
+
+  async sendSingedTransaction(singedTx: string): Promise<string> {
+    throw new Error('Implement me');
+  }
+
+  async getTxByHash(hash: string): Promise<CompleteTransaction> {
+    throw new Error('Implement me');
+  }
+
+  async checkTxisinBlock(hash: string): Promise<boolean> {
     throw new Error('Implement me');
   }
 }

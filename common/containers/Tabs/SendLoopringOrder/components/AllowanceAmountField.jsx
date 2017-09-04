@@ -8,6 +8,7 @@ type Props = {
   unit: string,
   title: string,
   tokens: string[],
+  allowance: string,
   onChange?: (value: string, unit: string) => void
 };
 
@@ -15,7 +16,7 @@ export default class AllowanceAmountField extends React.Component {
   props: Props;
 
   render() {
-    const { title, value, unit, onChange } = this.props;
+    const { title, value, unit, allowance, onChange } = this.props;
     const isReadonly = !onChange;
     return (
       <div>
@@ -42,6 +43,9 @@ export default class AllowanceAmountField extends React.Component {
         </div>
         {!isReadonly &&
           <p>
+            <span className="strong">
+              {translate('Current_Allowance')} {allowance},
+            </span>
             <a onClick={this.onSendEverything}>
               <span className="strong">
                 {translate('Allow_Total')}

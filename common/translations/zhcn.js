@@ -129,6 +129,8 @@ module.exports = {
     Current_Allowance: '当前授权额度是:',
     To_allow: ' 额度不足，请先去授权',
     Submit_tx: '提交订单',
+    Current_Balance: '当前余额',
+    Set_allow_to_value: '设置授权为',
 
     SEND_amount: '转账数额： ',
     SEND_amount_short: '数额 ',

@@ -54,10 +54,4 @@ export default class BuyAmountField extends React.Component {
       this.props.onChange(e.target.value, this.props.unit);
     }
   };
-
-  onSendEverything = () => {
-    if (this.props.onChange) {
-      this.props.onChange('everything', this.props.unit);
-    }
-  };
 }

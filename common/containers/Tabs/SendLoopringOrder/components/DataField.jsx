@@ -6,16 +6,18 @@ import { donationAddressMap } from 'config/data';
 
 export default class DataField extends React.Component {
   props: {
+    hasPreValue: boolean,
+    preValue: string,
     value: string,
     onChange?: (e: string) => void
   };
   state = {
     expanded: false
   };
+
   render() {
-    const { value } = this.props;
+    const { hasPreValue, preValue, value } = this.props;
     const valid = isValidHex(value || '');
-    const readOnly = true;
 
     return (
       <div className="row form-group">
@@ -25,11 +27,21 @@ export default class DataField extends React.Component {
               <label>
                 {translate('TRANS_data')}
               </label>
+              {hasPreValue &&
+                preValue &&
+                <input
+                  className={`form-control ${valid
+                    ? 'is-valid'
+                    : 'is-invalid'}`}
+                  type="text"
+                  value={preValue || ''}
+                  disabled
+                />}
               <input
                 className={`form-control ${valid ? 'is-valid' : 'is-invalid'}`}
                 type="text"
                 value={value || ''}
-                disabled={readOnly}
+                disabled
               />
             </div>
           </section>

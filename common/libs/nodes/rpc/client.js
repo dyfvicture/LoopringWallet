@@ -7,6 +7,8 @@ import type {
   CallRequest,
   GetBalanceRequest,
   EstimateGasRequest,
+  SendfRawTransactionRequest,
+  GetTxByHashRequest,
   GetTransactionCountRequest
 } from './types';
 
@@ -34,13 +36,31 @@ export function getBalance(address: string): GetBalanceRequest {
 }
 
 export function ethCall<T: *>(transaction: T): CallRequest {
-  if (tag)
-    return {
-      id: id(),
-      jsonrpc: '2.0',
-      method: 'eth_call',
-      params: [transaction, 'latest']
-    };
+  return {
+    id: id(),
+    jsonrpc: '2.0',
+    method: 'eth_call',
+    params: [transaction, 'latest']
+  };
+}
+
+export function sendRawTransaction(
+  transaction: string
+): SendfRawTransactionRequest {
+  return {
+    id: id(),
+    jsonrpc: '2.0',
+    method: 'eth_sendRawTransaction',
+    params: [transaction]
+  };
+}
+export function getTxByHash(hash: string): GetTxByHashRequest {
+  return {
+    id: id(),
+    jsonrpc: '2.0',
+    method: 'eth_sendRawTransaction',
+    params: [hash]
+  };
 }
 
 export function getTransactionCount(

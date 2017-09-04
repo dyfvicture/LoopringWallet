@@ -55,11 +55,16 @@ type State = {
   buyUnit: UNIT,
   sellUnit: UNIT,
   allowUnit: UNIT,
+  tokenSellAllowance: string,
+  tokenAllowance: string,
   gasLimit: string,
+  predata: string,
   data: string,
   gasChanged: boolean,
   showTxConfirm: boolean,
+  showPreTxConfirm: boolean,
   showAllow: boolean,
+  pretransaction: ?BroadcastTransaction,
   transaction: ?BroadcastTransaction
 };
 
@@ -102,15 +107,20 @@ export class SendExchange extends React.Component {
     buyAmount: '',
     sellAmount: '',
     allowAmount: '',
-    buyUnit: 'ether',
-    sellUnit: 'ether',
-    allowUnit: 'ether',
+    buyUnit: 'LRC',
+    sellUnit: 'LRC',
+    allowUnit: 'LRC',
     gasLimit: '21000',
+    predata: '',
     data: '',
+    tokenSellAllowance: '0',
+    tokenAllowance: '1',
     gasChanged: false,
     showTxConfirm: false,
+    showPreTxConfirm: false,
     showAllow: false,
-    transaction: null
+    transaction: null,
+    pretransaction: null
   };
 
   componentDidMount() {
@@ -144,11 +154,16 @@ export class SendExchange extends React.Component {
       sellUnit,
       allowUnit,
       gasLimit,
+      predata,
       data,
       readOnly,
       hasQueryString,
       showTxConfirm,
+      showPreTxConfirm,
       showAllow,
+      tokenSellAllowance,
+      tokenAllowance,
+      pretransaction,
       transaction
     } = this.state;
     const customMessage = customMessages.find(m => m.to === to);
@@ -189,6 +204,7 @@ export class SendExchange extends React.Component {
                       // .filter(token => !token.balance.eq(0))
                       .map(token => token.symbol)
                       .sort()}
+                    allowance={tokenSellAllowance}
                     toAllow={this.toAllow}
                     onChange={readOnly ? void 0 : this.onSellAmountChange}
                   />
@@ -221,6 +237,7 @@ export class SendExchange extends React.Component {
                     <AllowanceAmountField
                       title="Allow_amount"
                       value={allowAmount}
+                      allowance={tokenAllowance}
                       unit={allowUnit}
                       tokens={this.props.tokenBalances
                         // .filter(token => !token.balance.eq(0))
@@ -234,7 +251,11 @@ export class SendExchange extends React.Component {
                       value={gasLimit}
                       onChange={readOnly ? void 0 : this.onGasChange}
                     />
-                    <DataField value={data} />
+                    <DataField
+                      value={data}
+                      preValue={predata}
+                      hasPreValue={Number(tokenAllowance) !== 0}
+                    />
                     <CustomMessage message={customMessage} />
 
                     <div className="row form-group">
@@ -249,24 +270,25 @@ export class SendExchange extends React.Component {
                     </div>
 
                     <div className="row form-group">
+                      {Number(tokenAllowance) !== 0 &&
+                        <div className="col-sm-6">
+                          <label>
+                            {translate('Set_allow_to_value')} 0
+                          </label>
+                          <textarea
+                            className="form-control"
+                            value={pretransaction ? pretransaction.rawTx : ''}
+                            rows="4"
+                            readOnly
+                          />
+                        </div>}
                       <div className="col-sm-6">
                         <label>
-                          {translate('SEND_raw')}
+                          {translate('Set_allow_to_value')} {allowAmount}
                         </label>
                         <textarea
                           className="form-control"
                           value={transaction ? transaction.rawTx : ''}
-                          rows="4"
-                          readOnly
-                        />
-                      </div>
-                      <div className="col-sm-6">
-                        <label>
-                          {translate('SEND_signed')}
-                        </label>
-                        <textarea
-                          className="form-control"
-                          value={transaction ? transaction.signedTx : ''}
                           rows="4"
                           readOnly
                         />
@@ -285,13 +307,23 @@ export class SendExchange extends React.Component {
               </article>}
           </main>
         </div>
+        {pretransaction &&
+          showPreTxConfirm &&
+          <ConfirmationModal
+            wallet={this.props.wallet}
+            node={this.props.node}
+            signedTransaction={pretransaction.signedTx}
+            allowanceValue="0"
+            onCancel={this.cancelPreTx}
+            onConfirm={this.confirmPreTx}
+          />}
         {transaction &&
           showTxConfirm &&
           <ConfirmationModal
             wallet={this.props.wallet}
             node={this.props.node}
             signedTransaction={transaction.signedTx}
-            allowanceValue={this.state.value}
+            allowanceValue={this.state.allowAmount}
             onCancel={this.cancelTx}
             onConfirm={this.confirmTx}
           />}
@@ -390,11 +422,10 @@ export class SendExchange extends React.Component {
     this.setState({ gasLimit: value, gasChanged: true });
   };
 
-  onAllowanceAmountChange = (value: string, unit: string) => {
+  onAllowanceAmountChange = async (value: string, unit: string) => {
+    let toAddress = '';
+    let data;
     if (value === 'everything') {
-      if (unit === 'ether') {
-        value = this.props.balance.toString();
-      }
       const token = this.props.tokenBalances.find(
         token => token.symbol === unit
       );
@@ -403,19 +434,23 @@ export class SendExchange extends React.Component {
       }
       value = token.balance.toString();
     }
-
     const method =
       '0x' + sha3('approve(address, uint256)').toString('hex').slice(0, 8);
-
     const address = setLengthLeft(
       toBuffer(donationAddressMap.ETH),
       32
     ).toString('hex');
 
-    let data =
+    data =
       method +
       address +
       setLengthLeft(toBuffer('0x' + parseInt(value).toString(16)), 32).toString(
+        'hex'
+      );
+    let predata =
+      method +
+      address +
+      setLengthLeft(toBuffer('0x' + parseInt('0').toString(16)), 32).toString(
         'hex'
       );
 
@@ -428,20 +463,32 @@ export class SendExchange extends React.Component {
         );
     }
 
-    let toAddress = '';
-
     const token = this.props.tokens.find(token => token.symbol === unit);
-
+    let allowance = '0';
     if (token) {
       toAddress = token.address;
-    }
+      const address = await this.props.wallet.getAddress();
+      const method =
+        '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
+      const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
+      const spender = setLengthLeft(
+        toBuffer(donationAddressMap.ETH),
+        32
+      ).toString('hex');
+      allowance = (await this.props.nodeLib.getAllowance({
+        to: toAddress,
+        data: method + owner + spender
+      })).toString();
 
-    this.setState({
-      to: toAddress,
-      allowAmount: value,
-      allowUnit: unit,
-      data: data
-    });
+      this.setState({
+        to: toAddress,
+        tokenAllowance: allowance,
+        allowAmount: value,
+        allowUnit: unit,
+        predata: predata,
+        data: data
+      });
+    }
   };
 
   onBuyAmountChange = (value: string, unit: string) => {
@@ -451,8 +498,38 @@ export class SendExchange extends React.Component {
     });
   };
 
-  onSellAmountChange = (value: string, unit: string) => {
+  onSellAmountChange = async (value: string, unit: string) => {
+    let allowance = '0';
+    if (value === 'everything') {
+      const tokenBanance = this.props.tokenBalances.find(
+        token => token.symbol === unit
+      );
+      if (!tokenBanance) {
+        return;
+      }
+      value = tokenBanance.balance.toString();
+    } else {
+      const token = this.props.tokens.find(token => token.symbol === unit);
+      if (!token) {
+        return;
+      }
+      const contractAddress = token.address;
+      const address = await this.props.wallet.getAddress();
+      const method =
+        '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
+      const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
+      const spender = setLengthLeft(
+        toBuffer(donationAddressMap.ETH),
+        32
+      ).toString('hex');
+      allowance = (await this.props.nodeLib.getAllowance({
+        to: contractAddress,
+        data: method + owner + spender
+      })).toString();
+    }
+
     this.setState({
+      tokenSellAllowance: allowance,
       sellAmount: value,
       sellUnit: unit
     });
@@ -461,22 +538,51 @@ export class SendExchange extends React.Component {
   generateTx = async () => {
     const { nodeLib, wallet } = this.props;
     const address = await wallet.getAddress();
-
     try {
-      const transaction = await nodeLib.generateTransaction(
-        {
-          to: this.state.to,
-          from: address,
-          value: '0',
-          gasLimit: this.state.gasLimit,
-          gasPrice: this.props.gasPrice,
-          data: this.state.data,
-          chainId: this.props.network.chainId
-        },
-        wallet
-      );
+      if (Number(this.state.tokenAllowance) === 0) {
+        const transaction = await nodeLib.generateTransaction(
+          {
+            to: this.state.to,
+            from: address,
+            value: '0',
+            gasLimit: this.state.gasLimit,
+            gasPrice: this.props.gasPrice,
+            data: this.state.data,
+            chainId: this.props.network.chainId
+          },
+          wallet
+        );
 
-      this.setState({ transaction });
+        this.setState({ transaction });
+      } else {
+        const pretransaction = await nodeLib.generateTransaction(
+          {
+            to: this.state.to,
+            from: address,
+            value: '0',
+            gasLimit: this.state.gasLimit,
+            gasPrice: this.props.gasPrice,
+            data: this.state.predata,
+            chainId: this.props.network.chainId
+          },
+          wallet
+        );
+        const transaction = await nodeLib.generateTransactionWithNonce(
+          {
+            to: this.state.to,
+            from: address,
+            value: '0',
+            gasLimit: this.state.gasLimit,
+            gasPrice: this.props.gasPrice,
+            data: this.state.data,
+            chainId: this.props.network.chainId
+          },
+          wallet,
+          (Number(pretransaction.nonce) + 1).toString(16)
+        );
+
+        this.setState({ transaction, pretransaction });
+      }
     } catch (err) {
       this.props.showNotification('danger', err.message, 5000);
     }
@@ -489,13 +595,24 @@ export class SendExchange extends React.Component {
   };
 
   openTxModal = () => {
-    if (this.state.transaction) {
+    if (this.state.pretransaction) {
+      this.setState({ showPreTxConfirm: true });
+    } else if (this.state.transaction) {
       this.setState({ showTxConfirm: true });
     }
   };
 
   cancelTx = () => {
     this.setState({ showTxConfirm: false });
+  };
+  cancelPreTx = () => {
+    this.setState({ showPreTxConfirm: false });
+  };
+
+  confirmPreTx = (rawtx: string, tx: EthTx) => {
+    console.log(rawtx);
+    console.log(tx);
+    this.setState({ showTxConfirm: true });
   };
 
   confirmTx = (rawtx: string, tx: EthTx) => {

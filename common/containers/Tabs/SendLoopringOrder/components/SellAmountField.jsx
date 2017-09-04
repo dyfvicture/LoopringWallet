@@ -8,23 +8,17 @@ type Props = {
   unit: string,
   tokens: string[],
   toAllow: () => void,
+  allowance: string,
   onChange?: (value: string, unit: string) => void
 };
 
-type State = {
-  allowance: string
-};
-
-export default class BuyAmountField extends React.Component {
+export default class SellAmountField extends React.Component {
   props: Props;
-  state: State = {
-    allowance: '0'
-  };
 
   render() {
-    const { value, unit, onChange, toAllow } = this.props;
+    const { value, unit, allowance, onChange, toAllow } = this.props;
     const isReadonly = !onChange;
-    const { allowance } = this.state;
+
     return (
       <div>
         <label>
