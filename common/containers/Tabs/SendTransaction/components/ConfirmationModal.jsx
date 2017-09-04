@@ -91,7 +91,6 @@ class ConfirmationModal extends React.Component {
   }
 
   _confirm = () => {
-    console.log(1)
     const { signedTransaction, transaction } = this.props;
     this.props.onConfirm(signedTransaction, transaction);
   }
