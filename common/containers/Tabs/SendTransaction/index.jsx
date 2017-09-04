@@ -9,7 +9,8 @@ import {
   CustomMessage,
   GasField,
   AmountField,
-  AddressField
+  AddressField,
+  ConfirmationModal
 } from './components';
 import { BalanceSidebar } from 'components';
 import pickBy from 'lodash/pickBy';
@@ -23,10 +24,11 @@ import { isValidETHAddress } from 'libs/validators';
 import {
   getNodeLib,
   getNetworkConfig,
-  getGasPriceGwei
+  getGasPriceGwei,
+  getNodeConfig
 } from 'selectors/config';
 import { getTokens } from 'selectors/wallet';
-import type { Token, NetworkConfig } from 'config/data';
+import type { Token, NetworkConfig, NodeConfig } from 'config/data';
 import Big from 'bignumber.js';
 import { valueToHex } from 'libs/values';
 import ERC20 from 'libs/erc20';
@@ -53,7 +55,8 @@ type State = {
   gasLimit: string,
   data: string,
   gasChanged: boolean,
-  transaction: ?BroadcastTransaction
+  transaction: ?BroadcastTransaction,
+  showConfirm: boolean
 };
 
 function getParam(query: { [string]: string }, key: string) {
@@ -78,6 +81,7 @@ type Props = {
   wallet: BaseWallet,
   balance: Big,
   nodeLib: RPCNode,
+  node: NodeConfig,
   network: NetworkConfig,
   tokens: Token[],
   tokenBalances: TokenBalance[],
@@ -101,7 +105,8 @@ export class SendTransaction extends React.Component {
     gasLimit: '21000',
     data: '',
     gasChanged: false,
-    transaction: null
+    transaction: null,
+    showConfirm: false
   };
 
   componentDidMount() {
@@ -134,14 +139,15 @@ export class SendTransaction extends React.Component {
     const unlocked = !!this.props.wallet;
     const hasEnoughBalance = false;
     const {
+      hasQueryString,
+      readOnly,
       to,
       value,
       unit,
       gasLimit,
       data,
-      readOnly,
-      hasQueryString,
-      transaction
+      transaction,
+      showConfirm
     } = this.state;
     const customMessage = customMessages.find(m => m.to === to);
 
@@ -255,24 +261,25 @@ export class SendTransaction extends React.Component {
                   <div className="form-group">
                     <a
                       className="btn btn-primary btn-block col-sm-11"
-                      data-toggle="modal"
-                      data-target="#sendTransaction"
+                      onClick={this.openTxModal}
                     >
                       {translate('SEND_trans')}
                     </a>
                   </div>
                 </section>
-                {'' /* <!-- / Content --> */}
-                {
-                  '' /* @@if (site === 'mew' ) { @@include( './sendTx-content.tpl', { "site": "mew" } ) }
-            @@if (site === 'cx'  ) { @@include( './sendTx-content.tpl', { "site": "cx"  } ) }
-
-            @@if (site === 'mew' ) { @@include( './sendTx-modal.tpl',   { "site": "mew" } ) }
-            @@if (site === 'cx'  ) { @@include( './sendTx-modal.tpl',   { "site": "cx"  } ) } */
-                }
               </article>}
           </main>
         </div>
+
+        {showConfirm &&
+        <ConfirmationModal
+          wallet={this.props.wallet}
+          node={this.props.node}
+          signedTransaction={transaction.signedTx}
+          allowanceValue="0"
+          onCancel={this.cancelTx}
+          onConfirm={this.confirmTx}
+        />}
       </section>
     );
   }
@@ -428,6 +435,19 @@ export class SendTransaction extends React.Component {
       this.props.showNotification('danger', err.message, 5000);
     }
   };
+
+  openTxModal = () => {
+    this.setState({ showConfirm: true });
+  };
+
+  cancelTx = () => {
+    this.setState({ showConfirm: false });
+  };
+
+  confirmTx = (rawtx: string, tx: EthTx) => {
+    console.log(rawtx);
+    console.log(tx);
+  };
 }
 
 function mapStateToProps(state: AppState) {
@@ -436,6 +456,7 @@ function mapStateToProps(state: AppState) {
     balance: state.wallet.balance,
     tokenBalances: getTokenBalances(state),
     nodeLib: getNodeLib(state),
+    node: getNodeConfig(state),
     network: getNetworkConfig(state),
     tokens: getTokens(state),
     gasPrice: toWei(new Big(getGasPriceGwei(state)), 'gwei')
