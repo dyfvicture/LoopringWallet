@@ -61,6 +61,7 @@ export default class RpcNode extends BaseNode {
 
   async sendSingedTransaction(singedTx: string): Promise<string> {
     return this.client.call(sendRawTransaction(singedTx)).then(response => {
+      console.log(response);
       if (response.error) {
         throw new Error('send signedTx error');
       }

@@ -45,7 +45,7 @@ export type CallRequest = RPCRequestBase & {
   ]
 };
 
-export type SendfRawTransactionRequest = RPCRequestBase & {
+export type SendRawTransactionRequest = RPCRequestBase & {
   method: 'eth_sendRawTransaction',
   params: [DATA]
 };
@@ -78,6 +78,6 @@ export type RPCRequest =
   | GetBalanceRequest
   | CallRequest
   | EstimateGasRequest
-  | SendfRawTransactionRequest
+  | SendRawTransactionRequest
   | GetTxByHashRequest
   | GetTransactionCountRequest;

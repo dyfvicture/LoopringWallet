@@ -114,7 +114,7 @@ export class SendExchange extends React.Component {
     predata: '',
     data: '',
     tokenSellAllowance: '0',
-    tokenAllowance: '1',
+    tokenAllowance: '0',
     gasChanged: false,
     showTxConfirm: false,
     showPreTxConfirm: false,
@@ -553,6 +553,12 @@ export class SendExchange extends React.Component {
           wallet
         );
 
+        // if (this.props.balance < this.state.gasLimit * this.props.gasPrice) {
+        //   this.props.showNotification('danger', 'insufficient ETH balance for transaction fee', 5000);
+        // } else {
+        //   this.setState({transaction});
+        // }
+
         this.setState({ transaction });
       } else {
         const pretransaction = await nodeLib.generateTransaction(
@@ -580,6 +586,11 @@ export class SendExchange extends React.Component {
           wallet,
           (Number(pretransaction.nonce) + 1).toString(16)
         );
+        // if (this.props.balance < (this.state.gasLimit * this.props.gasPrice) * 2) {
+        //   this.props.showNotification('danger', 'insufficient ETH balance for transaction fee', 5000);
+        // } else {
+        //   this.setState({transaction, pretransaction});
+        // }
 
         this.setState({ transaction, pretransaction });
       }
@@ -609,15 +620,27 @@ export class SendExchange extends React.Component {
     this.setState({ showPreTxConfirm: false });
   };
 
-  confirmPreTx = (rawtx: string, tx: EthTx) => {
-    console.log(rawtx);
-    console.log(tx);
-    this.setState({ showTxConfirm: true });
+  confirmPreTx = async (rawtx: string, tx: EthTx) => {
+    try {
+      const hash = await this.props.nodeLib.sendSingedTransaction(rawtx);
+      let isCompleted = await this.props.nodeLib.checkTxisinBlock(hash);
+      const sheduler = setInterval(async () => {
+        if (!isCompleted) {
+          isCompleted = await this.props.nodeLib.checkTxisinBlock(hash);
+        } else {
+          clearInterval(sheduler);
+        }
+      }, 1000);
+
+      this.setState({ showTxConfirm: true, showPreTxConfirm: false });
+    } catch (err) {
+      this.props.showNotification('danger', err.message, 5000);
+    }
   };
 
   confirmTx = (rawtx: string, tx: EthTx) => {
-    console.log(rawtx);
-    console.log(tx);
+    this.props.nodeLib.sendSingedTransaction(rawtx);
+    this.setState({ showTxConfirm: false });
   };
 
   submitTx = () => {};

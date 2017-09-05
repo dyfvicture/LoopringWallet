@@ -16,6 +16,7 @@ import type { Token, NetworkConfig } from 'config/data';
 import { donationAddressMap } from 'config/data';
 import Modal from 'components/ui/Modal';
 import Identicon from 'components/ui/Identicon';
+import { Spin } from 'antd';
 
 type Props = {
   signedTransaction: string,
@@ -79,7 +80,7 @@ class ConfirmationModal extends React.Component {
   }
 
   _decodeTransaction() {
-    const { transaction, token } = this.props;
+    const { transaction } = this.props;
     const { to, value, data, gasPrice } = getTransactionFields(transaction);
 
     return {
@@ -90,17 +91,15 @@ class ConfirmationModal extends React.Component {
     };
   }
 
-  _confirm() {
-    if (this.state.timeToRead < 1) {
-      const { signedTransaction, transaction } = this.props;
-      this.props.onConfirm(signedTransaction, transaction);
-    }
-  }
+  _confirm = () => {
+    const { signedTransaction, transaction } = this.props;
+    this.props.onConfirm(signedTransaction, transaction);
+  };
 
   render() {
     const { node, token, network, onCancel, allowanceValue } = this.props;
     const { fromAddress, timeToRead } = this.state;
-    const { toAddress, value, gasPrice, data } = this._decodeTransaction();
+    const { gasPrice, data } = this._decodeTransaction();
 
     const buttonPrefix = timeToRead > 0 ? `(${timeToRead}) ` : '';
     const buttons = [
@@ -108,7 +107,7 @@ class ConfirmationModal extends React.Component {
         text: buttonPrefix + translate('SENDModal_Yes'),
         type: 'primary',
         disabled: timeToRead > 0,
-        onClick: this._confirm()
+        onClick: this._confirm
       },
       {
         text: translate('SENDModal_No'),
@@ -134,7 +133,7 @@ class ConfirmationModal extends React.Component {
             <div className="ConfModal-summary-amount">
               <div className="ConfModal-summary-amount-arrow" />
               <div className="ConfModal-summary-amount-currency">
-                {value} {symbol}
+                {symbol}
               </div>
             </div>
             <div className="ConfModal-summary-icon ConfModal-summary-icon--to">

@@ -7,7 +7,7 @@ import type {
   CallRequest,
   GetBalanceRequest,
   EstimateGasRequest,
-  SendfRawTransactionRequest,
+  SendRawTransactionRequest,
   GetTxByHashRequest,
   GetTransactionCountRequest
 } from './types';
@@ -46,7 +46,7 @@ export function ethCall<T: *>(transaction: T): CallRequest {
 
 export function sendRawTransaction(
   transaction: string
-): SendfRawTransactionRequest {
+): SendRawTransactionRequest {
   return {
     id: id(),
     jsonrpc: '2.0',
