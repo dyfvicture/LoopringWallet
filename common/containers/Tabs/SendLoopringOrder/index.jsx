@@ -425,15 +425,21 @@ export class SendExchange extends React.Component {
   onAllowanceAmountChange = async (value: string, unit: string) => {
     let toAddress = '';
     let data;
-    if (value === 'everything') {
-      const token = this.props.tokenBalances.find(
-        token => token.symbol === unit
-      );
-      if (!token) {
-        return;
-      }
-      value = token.balance.toString();
+    const tokenBalance = this.props.tokenBalances.find(
+      token => token.symbol === unit
+    );
+    if (!tokenBalance) {
+      return;
     }
+    if (value === 'everything') {
+      value = tokenBalance.balance.toString();
+    }
+
+    if (value > tokenBalance.balance) {
+      value = tokenBalance.balance.toString();
+      this.props.showNotification('danger', 'insufficient token balance', 2000);
+    }
+
     const method =
       '0x' + sha3('approve(address, uint256)').toString('hex').slice(0, 8);
     const address = setLengthLeft(
@@ -553,13 +559,15 @@ export class SendExchange extends React.Component {
           wallet
         );
 
-        // if (this.props.balance < this.state.gasLimit * this.props.gasPrice) {
-        //   this.props.showNotification('danger', 'insufficient ETH balance for transaction fee', 5000);
-        // } else {
-        //   this.setState({transaction});
-        // }
-
-        this.setState({ transaction });
+        if (this.props.balance < this.state.gasLimit * this.props.gasPrice) {
+          this.props.showNotification(
+            'danger',
+            'insufficient ETH balance for transaction fee',
+            5000
+          );
+        } else {
+          this.setState({ transaction });
+        }
       } else {
         const pretransaction = await nodeLib.generateTransaction(
           {
@@ -586,13 +594,19 @@ export class SendExchange extends React.Component {
           wallet,
           (Number(pretransaction.nonce) + 1).toString(16)
         );
-        // if (this.props.balance < (this.state.gasLimit * this.props.gasPrice) * 2) {
-        //   this.props.showNotification('danger', 'insufficient ETH balance for transaction fee', 5000);
-        // } else {
-        //   this.setState({transaction, pretransaction});
-        // }
 
-        this.setState({ transaction, pretransaction });
+        if (
+          this.props.balance <
+          this.state.gasLimit * this.props.gasPrice * 2
+        ) {
+          this.props.showNotification(
+            'danger',
+            'insufficient ETH balance for transaction fee',
+            5000
+          );
+        } else {
+          this.setState({ transaction, pretransaction });
+        }
       }
     } catch (err) {
       this.props.showNotification('danger', err.message, 5000);
@@ -631,7 +645,6 @@ export class SendExchange extends React.Component {
           clearInterval(sheduler);
         }
       }, 1000);
-
       this.setState({ showTxConfirm: true, showPreTxConfirm: false });
     } catch (err) {
       this.props.showNotification('danger', err.message, 5000);

@@ -25,6 +25,11 @@ export default [
     decimal: 18
   },
   {
+    address: '0xEF68e7C694F40c8202821eDF525dE3782458639f',
+    symbol: 'LRC',
+    decimal: 18
+  },
+  {
     address: '0xAc709FcB44a43c35F0DA4e3163b117A17F3770f5',
     symbol: 'ARC',
     decimal: 18
