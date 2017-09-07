@@ -647,13 +647,39 @@ export class SendExchange extends React.Component {
       }, 1000);
       this.setState({ showTxConfirm: true, showPreTxConfirm: false });
     } catch (err) {
+      this.setState({ showTxConfirm: false, showPreTxConfirm: false });
       this.props.showNotification('danger', err.message, 5000);
     }
   };
 
-  confirmTx = (rawtx: string, tx: EthTx) => {
-    this.props.nodeLib.sendSingedTransaction(rawtx);
-    this.setState({ showTxConfirm: false });
+  confirmTx = async (rawtx: string, tx: EthTx) => {
+    try {
+      await this.props.nodeLib.sendSingedTransaction(rawtx);
+      this.setState({
+        hasQueryString: false,
+        readOnly: false,
+        buyAmount: '',
+        sellAmount: '',
+        allowAmount: '',
+        buyUnit: 'LRC',
+        sellUnit: 'LRC',
+        allowUnit: 'LRC',
+        gasLimit: '21000',
+        predata: '',
+        data: '',
+        tokenSellAllowance: '0',
+        tokenAllowance: '0',
+        gasChanged: false,
+        showTxConfirm: false,
+        showPreTxConfirm: false,
+        showAllow: false,
+        transaction: null,
+        pretransaction: null
+      });
+    } catch (err) {
+      this.setState({ showTxConfirm: false, showPreTxConfirm: false });
+      this.props.showNotification('danger', err.message, 5000);
+    }
   };
 
   submitTx = () => {};

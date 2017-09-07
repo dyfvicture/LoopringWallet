@@ -20,6 +20,12 @@ export type EthCallTransaction = {
   data?: string
 };
 
+export type BroadcastTransactionStatus = {
+  isBroadcasting: boolean,
+  signedTx: string,
+  successfullyBroadcast: boolean
+};
+
 export type TransactionWithoutGas = {|
   from: string,
   to: string,

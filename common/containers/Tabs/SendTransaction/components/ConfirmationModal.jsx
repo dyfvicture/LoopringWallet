@@ -13,7 +13,6 @@ import { getTokens } from 'selectors/wallet';
 import { getNetworkConfig } from 'selectors/config';
 import type { NodeConfig } from 'config/data';
 import type { Token, NetworkConfig } from 'config/data';
-import { donationAddressMap } from 'config/data';
 import Modal from 'components/ui/Modal';
 import Identicon from 'components/ui/Identicon';
 
@@ -24,7 +23,6 @@ type Props = {
   node: NodeConfig,
   token: ?Token,
   network: NetworkConfig,
-  allowanceValue: string,
   onConfirm: (string, EthTx) => void,
   onCancel: () => void
 };
@@ -56,6 +54,7 @@ class ConfirmationModal extends React.Component {
 
   // Count down 5 seconds before allowing them to confirm
   readTimer = 0;
+
   componentDidMount() {
     this.readTimer = setInterval(() => {
       if (this.state.timeToRead > 0) {
@@ -82,8 +81,9 @@ class ConfirmationModal extends React.Component {
     const { transaction, token } = this.props;
     const { to, value, data, gasPrice } = getTransactionFields(transaction);
 
+    const fixedValue = toUnit(new Big(value, 16), 'wei', 'ether').toString();
     return {
-      value: value,
+      value: fixedValue,
       gasPrice: toUnit(new Big(gasPrice, 16), 'wei', 'gwei').toString(),
       data,
       toAddress: to
@@ -93,10 +93,10 @@ class ConfirmationModal extends React.Component {
   _confirm = () => {
     const { signedTransaction, transaction } = this.props;
     this.props.onConfirm(signedTransaction, transaction);
-  }
+  };
 
   render() {
-    const { node, token, network, onCancel, allowanceValue } = this.props;
+    const { node, token, network, onCancel } = this.props;
     const { fromAddress, timeToRead } = this.state;
     const { toAddress, value, gasPrice, data } = this._decodeTransaction();
 
@@ -119,7 +119,7 @@ class ConfirmationModal extends React.Component {
 
     return (
       <Modal
-        title="Confirm Your Approve Transaction"
+        title="Confirm Your Transaction"
         buttons={buttons}
         handleClose={onCancel}
         isOpen={true}
@@ -136,22 +136,21 @@ class ConfirmationModal extends React.Component {
               </div>
             </div>
             <div className="ConfModal-summary-icon ConfModal-summary-icon--to">
-              <Identicon size="100%" address={donationAddressMap.ETH} />
+              <Identicon size="100%" address={toAddress} />
             </div>
           </div>
 
           <ul className="ConfModal-details">
             <li className="ConfModal-details-detail">
-              You are approving allowance from <code>{fromAddress}</code>
+              You are sending from <code>{fromAddress}</code>
             </li>
             <li className="ConfModal-details-detail">
-              You are approving allowance to{' '}
-              <code>{donationAddressMap.ETH} </code>
+              You are sending to <code>{toAddress} </code>
             </li>
             <li className="ConfModal-details-detail">
-              You are approving allowance{' '}
+              You are sending{' '}
               <strong>
-                {allowanceValue} {symbol}
+                {value} {symbol}
               </strong>{' '}
               with a gas price of <strong>{gasPrice} gwei</strong>
             </li>

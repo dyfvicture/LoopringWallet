@@ -1,6 +1,7 @@
 import { BaseWallet } from 'libs/wallet/base';
 import { connect } from 'react-redux';
 import { showNotification } from 'actions/notifications';
+import React from 'react';
 
 type Props = {
   wallet: ?BaseWallet,
@@ -11,7 +12,7 @@ type Props = {
   ) => ShowNotificationAction
 };
 
-export class LoopringOrderHistory extends React.component {}
+export class LoopringOrderHistory extends React.Component {}
 function mapStateToProps(state: AppState) {
   return {
     wallet: state.wallet.inst

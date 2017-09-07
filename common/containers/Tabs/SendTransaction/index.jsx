@@ -44,6 +44,7 @@ import { toWei } from 'libs/units';
 import { formatGasLimit } from 'utils/formatters';
 import { showNotification } from 'actions/notifications';
 import type { ShowNotificationAction } from 'actions/notifications';
+import { browserHistory } from 'react-router';
 
 type State = {
   hasQueryString: boolean,
@@ -68,9 +69,6 @@ function getParam(query: { [string]: string }, key: string) {
 
   return query[keys[index]];
 }
-
-// TODO query string
-// TODO how to handle DATA?
 
 type Props = {
   location: {
@@ -272,14 +270,14 @@ export class SendTransaction extends React.Component {
         </div>
 
         {showConfirm &&
-        <ConfirmationModal
-          wallet={this.props.wallet}
-          node={this.props.node}
-          signedTransaction={transaction.signedTx}
-          allowanceValue="0"
-          onCancel={this.cancelTx}
-          onConfirm={this.confirmTx}
-        />}
+          <ConfirmationModal
+            wallet={this.props.wallet}
+            node={this.props.node}
+            signedTransaction={transaction.signedTx}
+            value={value}
+            onCancel={this.cancelTx}
+            onConfirm={this.confirmTx}
+          />}
       </section>
     );
   }
@@ -413,9 +411,11 @@ export class SendTransaction extends React.Component {
   };
 
   generateTx = async () => {
-    const { nodeLib, wallet } = this.props;
+    const { nodeLib, wallet, balance } = this.props;
     const address = await wallet.getAddress();
-
+    // if (balance < this.state.value) {
+    //   this.props.showNotification('warning', 'insufficient balance', 2000)
+    // } else {
     try {
       const transaction = await nodeLib.generateTransaction(
         {
@@ -434,6 +434,7 @@ export class SendTransaction extends React.Component {
     } catch (err) {
       this.props.showNotification('danger', err.message, 5000);
     }
+    //  }
   };
 
   openTxModal = () => {
@@ -444,9 +445,25 @@ export class SendTransaction extends React.Component {
     this.setState({ showConfirm: false });
   };
 
-  confirmTx = (rawtx: string, tx: EthTx) => {
-    console.log(rawtx);
-    console.log(tx);
+  confirmTx = async (rawtx: string, tx: EthTx) => {
+    try {
+      await this.props.nodeLib.sendSingedTransaction(rawtx);
+      this.setState({
+        hasQueryString: false,
+        readOnly: false,
+        to: '',
+        value: '',
+        unit: 'ether',
+        gasLimit: '21000',
+        data: '',
+        gasChanged: false,
+        transaction: null,
+        showConfirm: false
+      });
+    } catch (err) {
+      this.setState({ showConfirm: false });
+      this.props.showNotification('danger', err.message, 2000);
+    }
   };
 }
 

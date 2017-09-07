@@ -4,9 +4,6 @@ import translate from 'translations';
 import KeystoreDecrypt from './Keystore';
 import PrivateKeyDecrypt from './PrivateKey';
 import type { PrivateKeyValue } from './PrivateKey';
-import MnemonicDecrypt from './Mnemonic';
-import LedgerNanoSDecrypt from './LedgerNano';
-import TrezorDecrypt from './Trezor';
 import ViewOnlyDecrypt from './ViewOnly';
 import map from 'lodash/map';
 import { unlockPrivateKey, unlockKeystore } from 'actions/wallet';
@@ -146,6 +143,7 @@ export class WalletDecrypt extends Component {
   };
 
   onUnlock = () => {
+    console.log(this.state.value);
     this.props.dispatch(
       WALLETS[this.state.selectedWalletKey].unlock(this.state.value)
     );

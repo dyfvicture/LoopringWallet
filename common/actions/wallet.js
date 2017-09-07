@@ -90,4 +90,5 @@ export type WalletAction =
   | UnlockPrivateKeyAction
   | SetWalletAction
   | SetBalanceAction
-  | SetTokenBalancesAction;
+  | SetTokenBalancesAction
+  | BroadcastTxRequestedAction;

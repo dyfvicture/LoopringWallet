@@ -9,6 +9,7 @@ import Swap from 'containers/Tabs/Swap';
 import SendTransaction from 'containers/Tabs/SendTransaction';
 import Contracts from 'containers/Tabs/Contracts';
 import SendLoopringOrder from 'containers/Tabs/SendLoopringOrder';
+import LoopringOrderHistory from 'containers/Tabs/LoopringOrderHistory';
 export const history = getHistory();
 
 export const Routing = () =>
@@ -19,13 +20,16 @@ export const Routing = () =>
     <Route name="Swap" path="/swap" component={Swap} />
     <Route name="Send" path="/send-transaction" component={SendTransaction} />
     <Route name="Contracts" path="/contracts" component={Contracts} />
-
     <Route
       name="Exchange"
       path="/send-loopring-order"
       component={SendLoopringOrder}
     />
-
+    <Route
+      name="OrderHistory"
+      path="/loopring-order-history"
+      component={LoopringOrderHistory}
+    />
     <Redirect from="/*" to="/" />
   </Route>;
 

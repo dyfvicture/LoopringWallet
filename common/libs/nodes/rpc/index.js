@@ -35,7 +35,7 @@ export default class RpcNode extends BaseNode {
   async getBalance(address: string): Promise<Big> {
     return this.client.call(getBalance(address)).then(response => {
       if (response.error) {
-        throw new Error('getBalance error');
+        throw new Error(response.error.message);
       }
       return new Big(Number(this.formatResult(response.result)));
     });
@@ -44,7 +44,7 @@ export default class RpcNode extends BaseNode {
   async estimateGas(transaction: TransactionWithoutGas): Promise<Big> {
     return this.client.call(estimateGas(transaction)).then(response => {
       if (response.error) {
-        throw new Error('estimateGas error');
+        throw new Error(response.error.message);
       }
       return new Big(Number(this.formatResult(response.result)));
     });
@@ -53,7 +53,7 @@ export default class RpcNode extends BaseNode {
   async getAllowance(transaction: EthCallTransaction): Promise<Big> {
     return this.client.call(ethCall(transaction)).then(response => {
       if (response.error) {
-        throw new Error('getAllowance error');
+        throw new Error(response.error.message);
       }
       return new Big(Number(this.formatResult(response.result)));
     });
@@ -63,7 +63,7 @@ export default class RpcNode extends BaseNode {
     return this.client.call(sendRawTransaction(singedTx)).then(response => {
       console.log(response);
       if (response.error) {
-        throw new Error('send signedTx error');
+        throw new Error(response.error.message);
       }
       return new response.result();
     });
@@ -72,7 +72,7 @@ export default class RpcNode extends BaseNode {
   async getTxByHash(hash: string): Promise<CompleteTransaction> {
     return this.client.call(getTxByHash(hash)).then(response => {
       if (response.error) {
-        throw new Error('get tx by hash  error');
+        throw new Error(response.error.message);
       }
       return new CompleteTransaction(response.result);
     });
@@ -81,7 +81,7 @@ export default class RpcNode extends BaseNode {
   async checkTxisinBlock(hash: string): Promise<boolean> {
     return this.client.call(getTxByHash(hash)).then(response => {
       if (response.error) {
-        throw new Error('get tx by hash  error');
+        throw new Error(response.error.message);
       }
       return !!new CompleteTransaction(response.result).blockHash;
     });
