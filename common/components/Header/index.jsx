@@ -36,14 +36,7 @@ export default class Header extends Component {
               className="Header-branding-title"
               aria-label="Go to homepage"
             >
-              {/* TODO - don't hardcode image path*/}
-              <img
-                className="Header-branding-title-logo"
-                src={logo}
-                height="64px"
-                width="245px"
-                alt="MyEtherWallet"
-              />
+              <h5>Loopring Wallet</h5>
             </Link>
             <div className="Header-branding-title-tagline">
               <span style={{ maxWidth: '395px' }}>

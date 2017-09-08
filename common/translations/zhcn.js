@@ -63,7 +63,7 @@ module.exports = {
 
     /* Footer */
     FOOTER_1: '一个开源的生成以太坊钱包和发送交易的JavaScript客户端工具 ',
-    FOOTER_1b: '创建者 ',
+    FOOTER_1b: '基于MyEtherWallet的基础之上开的发一款钱包。 ',
     FOOTER_2: '欢迎捐赠我们： ',
     FOOTER_3: 'Client-side wallet generation by ',
     FOOTER_4: '声明 ',
@@ -159,6 +159,17 @@ module.exports = {
     SEND_loopring_sell_amount: '卖出代币数额： ',
     SEND_loopring_buy_token: '买入代币： ',
     SEND_loopring_buy_amount: '买入代币数额： ',
+
+    /*view Loopring order History*/
+    View_Loopring_Order_History: '路印交易历史',
+    NAV_ViewLoopringOrderHistory: '路印交易历史',
+    outToken: '卖出代币',
+    inToken: '买入代币',
+    outAmount: '卖出代币数量',
+    inAmount: '买入代币数量',
+    expiration: '过期时间',
+    fee: '交易费',
+    savingShare: '分润',
 
     /* Tokens */
     TOKEN_Addr: '地址： ',

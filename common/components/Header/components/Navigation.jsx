@@ -19,8 +19,8 @@ const tabs = [
     link: 'send-loopring-order'
   },
   {
-    name: 'NAV_Contracts',
-    link: 'contracts'
+    name: 'NAV_ViewLoopringOrderHistory',
+    link: 'loopring-order-history'
   }
 ];
 

@@ -44,7 +44,6 @@ import { toWei } from 'libs/units';
 import { formatGasLimit } from 'utils/formatters';
 import { showNotification } from 'actions/notifications';
 import type { ShowNotificationAction } from 'actions/notifications';
-import { browserHistory } from 'react-router';
 
 type State = {
   hasQueryString: boolean,
@@ -413,28 +412,31 @@ export class SendTransaction extends React.Component {
   generateTx = async () => {
     const { nodeLib, wallet, balance } = this.props;
     const address = await wallet.getAddress();
-    // if (balance < this.state.value) {
-    //   this.props.showNotification('warning', 'insufficient balance', 2000)
-    // } else {
-    try {
-      const transaction = await nodeLib.generateTransaction(
-        {
-          to: this.state.to,
-          from: address,
-          value: this.state.value,
-          gasLimit: this.state.gasLimit,
-          gasPrice: this.props.gasPrice,
-          data: this.state.data,
-          chainId: this.props.network.chainId
-        },
-        wallet
-      );
+    if (
+      balance <
+      this.state.value + this.state.gasLimit * this.props.gasPrice
+    ) {
+      this.props.showNotification('warning', 'insufficient balance', 2000);
+    } else {
+      try {
+        const transaction = await nodeLib.generateTransaction(
+          {
+            to: this.state.to,
+            from: address,
+            value: this.state.value,
+            gasLimit: this.state.gasLimit,
+            gasPrice: this.props.gasPrice,
+            data: this.state.data,
+            chainId: this.props.network.chainId
+          },
+          wallet
+        );
 
-      this.setState({ transaction });
-    } catch (err) {
-      this.props.showNotification('danger', err.message, 5000);
+        this.setState({ transaction });
+      } catch (err) {
+        this.props.showNotification('danger', err.message, 5000);
+      }
     }
-    //  }
   };
 
   openTxModal = () => {

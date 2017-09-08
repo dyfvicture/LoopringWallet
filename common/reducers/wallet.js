@@ -15,8 +15,7 @@ export type State = {
   balance: Big,
   tokens: {
     [string]: Big
-  },
-  transactions: Array<BroadcastTransactionStatus>
+  }
 };
 
 export const INITIAL_STATE: State = {
@@ -37,69 +36,6 @@ function setBalance(state: State, action: SetBalanceAction): State {
 function setTokenBalances(state: State, action: SetTokenBalancesAction): State {
   return { ...state, tokens: { ...state.tokens, ...action.payload } };
 }
-
-function handleUpdateTxArray(
-  transactions: Array<BroadcastTransactionStatus>,
-  broadcastStatusTx: BroadcastTransactionStatus,
-  isBroadcasting: boolean,
-  successfullyBroadcast: boolean
-): Array<BroadcastTransactionStatus> {
-  return transactions.map(item => {
-    if (item === broadcastStatusTx) {
-      return { ...item, isBroadcasting, successfullyBroadcast };
-    } else {
-      return { ...item };
-    }
-  });
-}
-
-function handleTxBroadcastCompleted(
-  state: State,
-  signedTx: string,
-  successfullyBroadcast: boolean
-): Array<BroadcastTransactionStatus> {
-  const existingTx = getTxFromBroadcastTransactionStatus(
-    state.transactions,
-    signedTx
-  );
-  if (existingTx) {
-    const isBroadcasting = false;
-    return handleUpdateTxArray(
-      state.transactions,
-      existingTx,
-      isBroadcasting,
-      successfullyBroadcast
-    );
-  } else {
-    return state.transactions;
-  }
-}
-
-function handleBroadcastTxRequested(state: State, signedTx: string) {
-  const existingTx = getTxFromBroadcastTransactionStatus(
-    state.transactions,
-    signedTx
-  );
-  const isBroadcasting = true;
-  const successfullyBroadcast = false;
-  if (!existingTx) {
-    return state.transactions.concat([
-      {
-        signedTx,
-        isBroadcasting,
-        successfullyBroadcast
-      }
-    ]);
-  } else {
-    return handleUpdateTxArray(
-      state.transactions,
-      existingTx,
-      isBroadcasting,
-      successfullyBroadcast
-    );
-  }
-}
-
 export function wallet(
   state: State = INITIAL_STATE,
   action: WalletAction
