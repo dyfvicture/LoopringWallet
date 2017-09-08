@@ -4,10 +4,15 @@ import { showNotification } from 'actions/notifications';
 import React from 'react';
 import { UnlockHeader } from 'components/ui';
 import { OrderTable } from './components';
+import type { TokenBalance } from 'selectors/wallet';
+import { getTokenBalances } from 'selectors/wallet';
+import { getTokens } from 'selectors/wallet';
 import translate from 'translations';
 
 type Props = {
   wallet: ?BaseWallet,
+  tokens: Token[],
+  tokenBalances: TokenBalance[],
   showNotification: (
     level: string,
     msg: string,
@@ -39,7 +44,9 @@ export class LoopringOrderHistory extends React.Component {
 
 function mapStateToProps(state: AppState) {
   return {
-    wallet: state.wallet.inst
+    wallet: state.wallet.inst,
+    tokens: getTokens(state),
+    tokenBalances: getTokenBalances(state)
   };
 }
 

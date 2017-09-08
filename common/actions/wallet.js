@@ -36,6 +36,7 @@ export type UnlockKeystoreAction = {
 export function unlockKeystore(
   value: KeystoreUnlockParams
 ): UnlockKeystoreAction {
+  console.log(value);
   return {
     type: 'WALLET_UNLOCK_KEYSTORE',
     payload: value

@@ -43,7 +43,6 @@ type State = {
 
 export class WalletDecrypt extends Component {
   props: {
-    // FIXME
     dispatch: (action: any) => void
   };
   state: State = {
