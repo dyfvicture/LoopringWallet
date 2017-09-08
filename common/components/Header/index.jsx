@@ -40,7 +40,7 @@ export default class Header extends Component {
             </Link>
             <div className="Header-branding-title-tagline">
               <span style={{ maxWidth: '395px' }}>
-                Open-Source & Client-Side Ether Wallet · v3.6.0
+                Open-Source & Client-Side Ether Wallet
               </span>
 
               <GasPriceDropdown

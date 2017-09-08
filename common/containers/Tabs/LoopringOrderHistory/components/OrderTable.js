@@ -14,14 +14,10 @@ type Props = {
 export default class OrderTable extends React.Component {
   props: Props;
   state: State = {
-    sortedInfo: {
-      columnKey: null,
-      order: null
-    }
+    sortedInfo: null
   };
 
   render() {
-    let { sortedInfo } = this.state;
     const { orders } = this.props;
     const columns = [
       {
