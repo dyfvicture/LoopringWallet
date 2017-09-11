@@ -44,6 +44,7 @@ import { toWei } from 'libs/units';
 import { formatGasLimit } from 'utils/formatters';
 import { showNotification } from 'actions/notifications';
 import type { ShowNotificationAction } from 'actions/notifications';
+import { Link } from 'react-router';
 
 type State = {
   hasQueryString: boolean,
@@ -162,7 +163,7 @@ export class SendTransaction extends React.Component {
                 </p>
               </div>}
 
-            <UnlockHeader title={'NAV_SendEther'} />
+            <UnlockHeader title={'NAV_SendEther'} view={false} />
 
             {unlocked &&
               <article className="row">

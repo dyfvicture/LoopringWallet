@@ -10,6 +10,7 @@ import SendTransaction from 'containers/Tabs/SendTransaction';
 import Contracts from 'containers/Tabs/Contracts';
 import SendLoopringOrder from 'containers/Tabs/SendLoopringOrder';
 import LoopringOrderHistory from 'containers/Tabs/LoopringOrderHistory';
+
 export const history = getHistory();
 
 export const Routing = () =>

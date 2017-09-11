@@ -14,7 +14,6 @@ import {
   ConfirmationModal
 } from './components';
 import { BalanceSidebar } from 'components';
-import pickBy from 'lodash/pickBy';
 import type { State as AppState } from 'reducers';
 import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
@@ -46,7 +45,6 @@ import { showNotification } from 'actions/notifications';
 import { sha3, setLengthLeft, toBuffer } from 'ethereumjs-util';
 
 type State = {
-  hasQueryString: boolean,
   readOnly: boolean,
   to: string,
   buyAmount: string,
@@ -102,7 +100,6 @@ type Props = {
 export class SendExchange extends React.Component {
   props: Props;
   state: State = {
-    hasQueryString: false,
     readOnly: false,
     buyAmount: '',
     sellAmount: '',
@@ -123,12 +120,7 @@ export class SendExchange extends React.Component {
     pretransaction: null
   };
 
-  componentDidMount() {
-    const queryPresets = pickBy(this.parseQuery());
-    if (Object.keys(queryPresets).length) {
-      this.setState({ ...queryPresets, hasQueryString: true });
-    }
-  }
+  componentDidMount() {}
 
   componentDidUpdate(_prevProps: Props, prevState: State) {
     if (
@@ -157,7 +149,6 @@ export class SendExchange extends React.Component {
       predata,
       data,
       readOnly,
-      hasQueryString,
       showTxConfirm,
       showPreTxConfirm,
       showAllow,
@@ -172,14 +163,7 @@ export class SendExchange extends React.Component {
       <section className="container" style={{ minHeight: '50%' }}>
         <div className="tab-content">
           <main className="tab-pane active">
-            {hasQueryString &&
-              <div className="alert alert-info">
-                <p>
-                  {translate('WARN_Send_Link')}
-                </p>
-              </div>}
-
-            <UnlockHeader title={'NAV_SendLoopringOrder'} />
+            <UnlockHeader title={'NAV_SendLoopringOrder'} view={false} />
 
             {unlocked &&
               <article className="row">
@@ -331,21 +315,6 @@ export class SendExchange extends React.Component {
     );
   }
 
-  parseQuery() {
-    const query = this.props.location.query;
-    const to = getParam(query, 'to');
-    const data = getParam(query, 'data');
-    const unit = getParam(query, 'tokenSymbol');
-    const value = getParam(query, 'value');
-    let gasLimit = getParam(query, 'gas');
-    if (gasLimit === null) {
-      gasLimit = getParam(query, 'limit');
-    }
-    const readOnly = getParam(query, 'readOnly') == null ? false : true;
-
-    return { to, data, value, unit, gasLimit, readOnly };
-  }
-
   isValid() {
     const { to, value } = this.state;
     return (
@@ -389,8 +358,6 @@ export class SendExchange extends React.Component {
       return;
     }
 
-    // Grab a reference to state. If it has changed by the time the estimateGas
-    // call comes back, we don't want to replace the gasLimit in state.
     const state = this.state;
 
     this.props.nodeLib.estimateGas(trans).then(gasLimit => {
@@ -399,24 +366,6 @@ export class SendExchange extends React.Component {
       }
     });
   }
-
-  // FIXME use mkTx instead or something that could take care of default gas/data and whatnot,
-  onNewTx = (
-    address: string,
-    amount: string,
-    unit: string,
-    data: string = '',
-    gasLimit: string = '21000'
-  ) => {
-    this.setState({
-      to: address,
-      value: amount,
-      unit,
-      data,
-      gasLimit,
-      gasChanged: false
-    });
-  };
 
   onGasChange = (value: string) => {
     this.setState({ gasLimit: value, gasChanged: true });
@@ -437,7 +386,11 @@ export class SendExchange extends React.Component {
 
     if (value > tokenBalance.balance) {
       value = tokenBalance.balance.toString();
-      this.props.showNotification('danger', 'insufficient token balance', 2000);
+      this.props.showNotification(
+        'warning',
+        'insufficient token balance',
+        2000
+      );
     }
 
     const method =
@@ -505,33 +458,26 @@ export class SendExchange extends React.Component {
   };
 
   onSellAmountChange = async (value: string, unit: string) => {
-    let allowance = '0';
+    const token = this.props.tokens.find(token => token.symbol === unit);
+    if (!token) {
+      return;
+    }
+    const contractAddress = token.address;
+    const address = await this.props.wallet.getAddress();
+    const method =
+      '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
+    const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
+    const spender = setLengthLeft(
+      toBuffer(donationAddressMap.ETH),
+      32
+    ).toString('hex');
+    const allowance = (await this.props.nodeLib.getAllowance({
+      to: contractAddress,
+      data: method + owner + spender
+    })).toString();
+
     if (value === 'everything') {
-      const tokenBanance = this.props.tokenBalances.find(
-        token => token.symbol === unit
-      );
-      if (!tokenBanance) {
-        return;
-      }
-      value = tokenBanance.balance.toString();
-    } else {
-      const token = this.props.tokens.find(token => token.symbol === unit);
-      if (!token) {
-        return;
-      }
-      const contractAddress = token.address;
-      const address = await this.props.wallet.getAddress();
-      const method =
-        '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
-      const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
-      const spender = setLengthLeft(
-        toBuffer(donationAddressMap.ETH),
-        32
-      ).toString('hex');
-      allowance = (await this.props.nodeLib.getAllowance({
-        to: contractAddress,
-        data: method + owner + spender
-      })).toString();
+      value = allowance;
     }
 
     this.setState({
@@ -656,7 +602,6 @@ export class SendExchange extends React.Component {
     try {
       await this.props.nodeLib.sendSingedTransaction(rawtx);
       this.setState({
-        hasQueryString: false,
         readOnly: false,
         buyAmount: '',
         sellAmount: '',
@@ -682,7 +627,35 @@ export class SendExchange extends React.Component {
     }
   };
 
-  submitTx = () => {};
+  submitTx = async () => {
+    const token = this.props.tokens.find(
+      token => token.symbol === this.state.sellUnit
+    );
+    if (!token) {
+      return;
+    }
+    const contractAddress = token.address;
+    const address = await this.props.wallet.getAddress();
+    const method =
+      '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
+    const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
+    const spender = setLengthLeft(
+      toBuffer(donationAddressMap.ETH),
+      32
+    ).toString('hex');
+    const allowance = (await this.props.nodeLib.getAllowance({
+      to: contractAddress,
+      data: method + owner + spender
+    })).toString();
+
+    if (allowance < this.state.sellAmount) {
+      this.props.showNotification(
+        'warning',
+        'insufficient token allowance',
+        1000
+      );
+    }
+  };
 }
 
 function mapStateToProps(state: AppState) {
