@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
 import customMessages from './messages';
 import type { NetworkConfig, Token, NodeConfig } from 'config/data';
-import { donationAddressMap } from 'config/data';
+import { loopringContractAddressMap } from 'config/data';
 import { isValidETHAddress } from 'libs/validators';
 import {
   getGasPriceGwei,
@@ -65,16 +65,6 @@ type State = {
   pretransaction: ?BroadcastTransaction,
   transaction: ?BroadcastTransaction
 };
-
-function getParam(query: { [string]: string }, key: string) {
-  const keys = Object.keys(query);
-  const index = keys.findIndex(k => k.toLowerCase() === key.toLowerCase());
-  if (index === -1) {
-    return null;
-  }
-
-  return query[keys[index]];
-}
 
 type Props = {
   location: {
@@ -217,7 +207,7 @@ export class SendExchange extends React.Component {
                         {translate('Approve_Allowance')}
                       </h4>
                     </div>
-                    <AddressField value={donationAddressMap.ETH} />
+                    <AddressField value={loopringContractAddressMap.ETH} />
                     <AllowanceAmountField
                       title="Allow_amount"
                       value={allowAmount}
@@ -396,7 +386,7 @@ export class SendExchange extends React.Component {
     const method =
       '0x' + sha3('approve(address, uint256)').toString('hex').slice(0, 8);
     const address = setLengthLeft(
-      toBuffer(donationAddressMap.ETH),
+      toBuffer(loopringContractAddressMap.ETH),
       32
     ).toString('hex');
 
@@ -431,7 +421,7 @@ export class SendExchange extends React.Component {
         '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
       const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
       const spender = setLengthLeft(
-        toBuffer(donationAddressMap.ETH),
+        toBuffer(loopringContractAddressMap.ETH),
         32
       ).toString('hex');
       allowance = (await this.props.nodeLib.getAllowance({
@@ -468,7 +458,7 @@ export class SendExchange extends React.Component {
       '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
     const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
     const spender = setLengthLeft(
-      toBuffer(donationAddressMap.ETH),
+      toBuffer(loopringContractAddressMap.ETH),
       32
     ).toString('hex');
     const allowance = (await this.props.nodeLib.getAllowance({
@@ -640,7 +630,7 @@ export class SendExchange extends React.Component {
       '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
     const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
     const spender = setLengthLeft(
-      toBuffer(donationAddressMap.ETH),
+      toBuffer(LoopringContractAddressMap.ETH),
       32
     ).toString('hex');
     const allowance = (await this.props.nodeLib.getAllowance({

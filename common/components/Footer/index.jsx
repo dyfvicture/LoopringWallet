@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import translate, { getTranslators } from 'translations';
-import { donationAddressMap } from 'config/data';
-import logo from 'assets/images/logo-myetherwallet.svg';
 import { bityReferralURL } from 'config/data';
 import './index.scss';
 

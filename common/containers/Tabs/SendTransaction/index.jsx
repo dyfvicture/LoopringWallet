@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
 // import type { Transaction } from './types';
 import customMessages from './messages';
-import { donationAddressMap } from 'config/data';
+import { loopringContractAddressMap } from 'config/data';
 import { isValidETHAddress } from 'libs/validators';
 import {
   getNodeLib,
@@ -196,7 +196,7 @@ export class SendTransaction extends React.Component {
                     </h4>
                   </div>
                   <AddressField
-                    placeholder={donationAddressMap.ETH}
+                    placeholder={loopringContractAddressMap.ETH}
                     value={this.state.to}
                     onChange={readOnly ? null : this.onAddressChange}
                   />

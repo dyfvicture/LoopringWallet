@@ -31,6 +31,7 @@ export const Routing = () =>
       path="/loopring-order-history"
       component={LoopringOrderHistory}
     />
+
     <Redirect from="/*" to="/" />
   </Route>;
 

@@ -170,6 +170,14 @@ module.exports = {
     expiration: '过期时间',
     fee: '交易费',
     savingShare: '分润',
+    detail: '详情',
+    cancel: '取消',
+    action: '动作',
+    Loorping_Order_Hash: '交易Hash',
+    Confirm_Cancel: '确定取消订单吗？',
+    Cancel_Loopring_Order_Content: '取消订单以后，您的代币授权额度不会改变，但是交易将不会继续被撮合！',
+    Cancel_Success: '取消成功',
+    Cancel_Failed: '取消失败',
 
     /* Tokens */
     TOKEN_Addr: '地址： ',
