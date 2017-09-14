@@ -306,13 +306,13 @@ export class SendExchange extends React.Component {
   }
 
   isValid() {
-    const { to, value } = this.state;
+    const { allowAmount } = this.state;
     return (
-      isValidETHAddress(to) &&
-      value &&
-      Number(value) > 0 &&
-      !isNaN(Number(value)) &&
-      isFinite(Number(value))
+      isValidETHAddress(loopringContractAddressMap.ETH) &&
+      allowAmount &&
+      Number(allowAmount) >= 0 &&
+      !isNaN(Number(allowAmount)) &&
+      isFinite(Number(allowAmount))
     );
   }
 
@@ -347,9 +347,7 @@ export class SendExchange extends React.Component {
     if (!trans) {
       return;
     }
-
     const state = this.state;
-
     this.props.nodeLib.estimateGas(trans).then(gasLimit => {
       if (this.state === state) {
         this.setState({ gasLimit: formatGasLimit(gasLimit, state.unit) });
@@ -618,6 +616,21 @@ export class SendExchange extends React.Component {
   };
 
   submitTx = async () => {
+    const { buyAmount, sellAmount } = this.state;
+    const valid =
+      buyAmount &&
+      sellAmount &&
+      Number(buyAmount) > 0 &&
+      Number(sellAmount) > 0 &&
+      !isNaN(Number(buyAmount)) &&
+      !isNaN(Number(sellAmount)) &&
+      isFinite(Number(buyAmount)) &&
+      isFinite(Number(sellAmount));
+
+    if (!valid) {
+      this.props.showNotification('danger', 'illegal inputs', 2000);
+      return;
+    }
     const token = this.props.tokens.find(
       token => token.symbol === this.state.sellUnit
     );
@@ -630,7 +643,7 @@ export class SendExchange extends React.Component {
       '0x' + sha3('allowance(address, address)').toString('hex').slice(0, 8);
     const owner = setLengthLeft(toBuffer(address), 32).toString('hex');
     const spender = setLengthLeft(
-      toBuffer(LoopringContractAddressMap.ETH),
+      toBuffer(loopringContractAddressMap.ETH),
       32
     ).toString('hex');
     const allowance = (await this.props.nodeLib.getAllowance({

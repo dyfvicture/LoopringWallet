@@ -225,6 +225,7 @@ export class SendTransaction extends React.Component {
                       <a
                         className="btn btn-info btn-block"
                         onClick={this.generateTx}
+                        disabled={!this.isValid()}
                       >
                         {translate('SEND_generate')}
                       </a>
@@ -260,6 +261,7 @@ export class SendTransaction extends React.Component {
                     <a
                       className="btn btn-primary btn-block col-sm-11"
                       onClick={this.openTxModal}
+                      disabled={!transaction}
                     >
                       {translate('SEND_trans')}
                     </a>
@@ -395,15 +397,17 @@ export class SendTransaction extends React.Component {
     if (value === 'everything') {
       if (unit === 'ether') {
         value = this.props.balance.toString();
+      } else {
+        const token = this.props.tokenBalances.find(
+          token => token.symbol === unit
+        );
+        if (!token) {
+          return;
+        }
+        value = token.balance.toString();
       }
-      const token = this.props.tokenBalances.find(
-        token => token.symbol === unit
-      );
-      if (!token) {
-        return;
-      }
-      value = token.balance.toString();
     }
+
     this.setState({
       value,
       unit
@@ -441,7 +445,15 @@ export class SendTransaction extends React.Component {
   };
 
   openTxModal = () => {
-    this.setState({ showConfirm: true });
+    if (this.state.transaction) {
+      this.setState({ showConfirm: true });
+    } else {
+      this.props.showNotification(
+        'warning',
+        'Please Generate Transaction first',
+        1000
+      );
+    }
   };
 
   cancelTx = () => {
