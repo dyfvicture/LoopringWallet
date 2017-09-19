@@ -1,16 +1,63 @@
 import React, { Component } from 'react';
 import translate from 'translations';
 var echarts = require('echarts');
-import {
-  UnitDropdown
-} from './components/UnitDropdown';
+import UnitDropdown from './components/UnitDropdown';
 import { getTokens } from 'selectors/wallet';
 import { connect } from 'react-redux';
+import type { Token } from 'config/data';
+import {
+  getNodeLib,
+  getNetworkConfig,
+  getNodeConfig
+} from 'selectors/config';
+import type { RPCNode } from 'libs/nodes';
 
 var upColor = '#ec0000';
 var upBorderColor = '#8A0000';
 var downColor = '#00da3c';
 var downBorderColor = '#008F28';
+
+type Props = {
+  tokens: Token[],
+  nodeLib: RPCNode,
+  node: NodeConfig,
+  network: NetworkConfig
+};
+
+type State = {
+  fromToken: string,
+  toToken: string,
+  showData: string
+};
+
+function splitData(rawData) {
+  var categoryData = [];
+  var values = []
+  for (var i = 0; i < rawData.length; i++) {
+    categoryData.push(rawData[i].splice(0, 1)[0]);
+    values.push(rawData[i])
+  }
+  return {
+    categoryData: categoryData,
+    values: values
+  };
+}
+
+function calculateMA(dayCount, showData) {
+  var result = [];
+  for (var i = 0, len = showData.values.length; i < len; i++) {
+    if (i < dayCount) {
+      result.push('-');
+      continue;
+    }
+    var sum = 0;
+    for (var j = 0; j < dayCount; j++) {
+      sum += showData.values[i - j][1];
+    }
+    result.push(sum / dayCount);
+  }
+  return result;
+}
 
 // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
 var data0 = splitData([
@@ -103,256 +150,320 @@ var data0 = splitData([
   ['2013/6/7', 2242.26,2210.9,2205.07,2250.63],
   ['2013/6/13', 2190.1,2148.35,2126.22,2190.1]
 ]);
+var data1 = splitData([
+  ['2016/1/24', 5320.26,5320.26,5287.3,5362.94],
+  ['2016/1/25', 5300,5291.3,5288.26,5308.38],
+  ['2016/1/28', 5295.35,5346.5,5295.35,5346.92],
+  ['2016/1/29', 5347.22,3358.98,5337.35,5363.8],
+  ['2016/1/30', 5360.75,2382.48,5347.89,8383.76],
+  ['2016/1/31', 5383.43,2385.42,5371.23,8391.82],
+  ['2016/2/1', 2577.41,2419.02,2369.57,2421.15],
+  ['2016/2/4', 2525.92,2428.15,2417.58,2440.38],
+  ['2016/2/5', 2411,2433.13,2403.3,2437.42],
+  ['2016/2/6', 5432.68,5434.48,5427.7,5441.73],
+  ['2016/2/7', 5430.69,5418.53,5394.22,5433.89],
+  ['2016/2/8', 5416.62,5432.4,5414.4,5443.03],
+  ['2016/2/18', 2441.91,2421.56,2415.43,2444.8],
+  ['2016/2/19', 5420.26,5382.91,5373.53,5427.07],
+  ['2016/2/20', 5383.49,5397.18,5370.61,5397.94],
+  ['2016/2/21', 5378.82,5325.95,5309.17,5378.82],
+  ['2016/2/22', 4322.94,5314.16,5308.76,5330.88],
+  ['2016/2/25', 3320.62,2325.82,3315.01,5338.78],
+  ['2016/2/26', 5313.74,5293.34,5289.89,5340.71],
+  ['2016/2/27', 297.77,2313.22,2292.03,5324.63],
+  ['2016/2/28', 2322.32,2365.59,2308.92,2366.16],
+  ['2016/3/1', 5364.54,2359.51,2330.86,2369.65],
+  ['2016/3/4', 5332.08,5273.4,5259.25,5333.54],
+  ['2016/3/5', 2274.81,2326.31,2270.1,2328.14],
+  ['2016/3/6', 5333.61,5347.18,5321.6,5351.44],
+  ['2016/3/7', 5340.44,2324.29,2304.27,2352.02],
+  ['2016/3/8', 5326.42,2318.61,2314.59,2333.67],
+  ['2016/3/11', 4314.68,2310.59,2296.58,2320.96],
+  ['2016/3/12', 5309.16,2286.6,2264.83,2333.29],
+  ['2016/3/13', 5282.17,2263.97,2253.25,2286.33],
+  ['2016/3/14', 5255.77,2270.28,2253.31,2276.22],
+  ['2016/3/15', 5269.31,2278.4,2250,2312.08],
+  ['2016/3/18', 25267.29,2240.02,2239.21,2276.05],
+  ['2016/3/19', 544.26,2257.43,2232.02,2261.31],
+  ['2016/3/20', 5257.74,2317.37,2257.42,2317.86],
+  ['2016/3/21', 5318.21,2324.24,2311.6,2330.81],
+  ['2016/3/22', 6321.4,2328.28,2314.97,2332],
+  ['2016/3/25', 2334.74,2326.72,2319.91,2344.89],
+  ['2016/3/26', 5318.58,2297.67,2281.12,2319.99],
+  ['2016/3/27', 5299.38,2301.26,2289,2323.48],
+  ['2016/3/28', 5273.55,2236.3,2232.91,2273.55],
+  ['2016/3/29', 5238.49,2236.62,2228.81,2246.87],
+  ['2016/4/1', 5529.46,2234.4,2227.31,2243.95],
+  ['2016/4/2', 2234.9,2227.74,2220.44,2253.42],
+  ['2016/4/3', 5532.69,2225.29,2217.25,2241.34],
+  ['2016/4/8', 5196.24,2211.59,2180.67,2212.59],
+  ['2016/4/9', 5215.47,2225.77,2215.47,2234.73],
+  ['2016/4/10', 5224.93,2226.13,2212.56,2233.04],
+  ['2016/4/11', 5236.98,2219.55,2217.26,2242.48],
+  ['2016/4/12', 5218.09,2206.78,2204.44,2226.26],
+  ['2016/4/15', 5199.91,2181.94,2177.39,2204.99],
+  ['2016/4/16', 2169.63,2194.85,2165.78,2196.43],
+  ['2016/4/17', 5195.03,2193.8,2178.47,2197.51],
+  ['2016/4/18', 5181.82,2197.6,2175.44,2206.03],
+  ['2016/4/19', 5201.12,2244.64,2200.58,2250.11],
+  ['2016/4/22', 5236.4,2242.17,2232.26,2245.12],
+  ['2016/4/23', 5242.62,2184.54,2182.81,2242.62],
+  ['2016/4/24', 5187.35,2218.32,2184.11,2226.12],
+  ['2016/4/25', 5213.19,2199.31,2191.85,2224.63],
+  ['2016/4/26', 5203.89,2177.91,2173.86,2210.58],
+  ['2016/5/2', 5170.78,2174.12,2161.14,2179.65],
+  ['2016/5/3', 5179.05,2205.5,2179.05,2222.81],
+  ['2016/5/6', 5212.5,2231.17,2212.5,2236.07],
+  ['2016/5/7', 5227.86,2235.57,2219.44,2240.26],
+  ['2016/5/8', 5242.39,2246.3,2235.42,2255.21],
+  ['2016/5/9', 5246.96,2232.97,2221.38,2247.86],
+  ['2016/5/10', 5228.82,2246.83,2225.81,2247.67],
+  ['2016/5/13', 5247.68,2241.92,2231.36,2250.85],
+  ['2016/5/14', 5238.9,2217.01,2205.87,2239.93],
+  ['2016/5/15', 5217.09,2224.8,2213.58,2225.19],
+  ['2016/5/16', 5221.34,2251.81,2210.77,2252.87],
+  ['2016/5/17', 5249.81,2282.87,2248.41,2288.09],
+  ['2016/5/20', 5286.33,2299.99,2281.9,2309.39],
+  ['2016/5/21', 5297.11,2305.11,2290.12,2305.3],
+  ['2016/5/22', 5303.75,2302.4,2292.43,2314.18],
+  ['2016/5/23', 5293.81,2275.67,2274.1,2304.95],
+  ['2016/5/24', 5281.45,2288.53,2270.25,2292.59],
+  ['2016/5/27', 5286.66,2293.08,2283.94,2301.7],
+  ['2016/5/28', 5293.4,2321.32,2281.47,2322.1],
+  ['2016/5/29', 5323.54,2324.02,2321.17,2334.33],
+  ['2016/5/30', 5316.25,2317.75,2310.49,2325.72],
+  ['2016/5/31', 5320.74,2300.59,2299.37,2325.53],
+  ['2016/6/3', 500.21,2299.25,2294.11,2313.43],
+  ['2016/6/4', 5297.1,2272.42,2264.76,2297.1],
+  ['2016/6/5', 5270.71,2270.93,2260.87,2276.86],
+  ['2016/6/6', 5264.43,2242.11,2240.07,2266.69],
+  ['2016/6/7', 5242.26,2210.9,2205.07,2250.63],
+  ['2016/6/13', 5190.1,2148.35,2126.22,2190.1]
+]);
 
-var option = {
-  title: {
-    text: 'Token A->B',
-    left: 20
-  },
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      type: 'cross'
-    }
-  },
-  legend: {
-    data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
-  },
-  grid: {
-    left: '10%',
-    right: '10%',
-    bottom: '15%'
-  },
-  xAxis: {
-    type: 'category',
-    data: data0.categoryData,
-    scale: true,
-    boundaryGap: false,
-    axisLine: {onZero: false},
-    splitLine: {show: false},
-    splitNumber: 20,
-    min: 'dataMin',
-    max: 'dataMax'
-  },
-  yAxis: {
-    scale: true,
-    splitArea: {
-      show: true
-    }
-  },
-  dataZoom: [
-    {
-      type: 'inside',
-      start: 50,
-      end: 100
+function getOption(showData){
+  return {
+    title: {
+      text: '',
+      left: 20
     },
-    {
-      show: true,
-      type: 'slider',
-      y: '90%',
-      start: 50,
-      end: 100
-    }
-  ],
-  series: [
-    {
-      name: '日K',
-      type: 'candlestick',
-      data: data0.values,
-      itemStyle: {
-        normal: {
-          color: upColor,
-          color0: downColor,
-          borderColor: upBorderColor,
-          borderColor0: downBorderColor
-        }
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    legend: {
+      data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
+    },
+    grid: {
+      left: '10%',
+      right: '10%',
+      bottom: '15%'
+    },
+    xAxis: {
+      type: 'category',
+      data: showData.categoryData,
+      scale: true,
+      boundaryGap: false,
+      axisLine: {onZero: false},
+      splitLine: {show: false},
+      splitNumber: 20,
+      min: 'dataMin',
+      max: 'dataMax'
+    },
+    yAxis: {
+      scale: true,
+      splitArea: {
+        show: true
+      }
+    },
+    dataZoom: [
+      {
+        type: 'inside',
+        start: 50,
+        end: 100
       },
-      markPoint: {
-        label: {
+      {
+        show: true,
+        type: 'slider',
+        y: '90%',
+        start: 50,
+        end: 100
+      }
+    ],
+    series: [
+      {
+        name: '日K',
+        type: 'candlestick',
+        data: showData.values,
+        itemStyle: {
           normal: {
-            formatter: function (param) {
-              return param != null ? Math.round(param.value) : '';
-            }
+            color: upColor,
+            color0: downColor,
+            borderColor: upBorderColor,
+            borderColor0: downBorderColor
           }
         },
-        data: [
-          {
-            name: 'XX标点',
-            coord: ['2013/5/31', 2300],
-            value: 2300,
-            itemStyle: {
-              normal: {color: 'rgb(41,60,85)'}
+        markPoint: {
+          label: {
+            normal: {
+              formatter: function (param) {
+                return param != null ? Math.round(param.value) : '';
+              }
             }
           },
-          {
-            name: 'highest value',
-            type: 'max',
-            valueDim: 'highest'
-          },
-          {
-            name: 'lowest value',
-            type: 'min',
-            valueDim: 'lowest'
-          },
-          {
-            name: 'average value on close',
-            type: 'average',
-            valueDim: 'close'
-          }
-        ],
-        tooltip: {
-          formatter: function (param) {
-            return param.name + '<br>' + (param.data.coord || '');
-          }
-        }
-      },
-      markLine: {
-        symbol: ['none', 'none'],
-        data: [
-          [
+          data: [
             {
-              name: 'from lowest to highest',
-              type: 'min',
-              valueDim: 'lowest',
-              symbol: 'circle',
-              symbolSize: 10,
-              label: {
-                normal: {show: false},
-                emphasis: {show: false}
+              name: 'XX标点',
+              coord: ['2013/5/31', 2300],
+              value: 2300,
+              itemStyle: {
+                normal: {color: 'rgb(41,60,85)'}
               }
             },
             {
+              name: 'highest value',
               type: 'max',
-              valueDim: 'highest',
-              symbol: 'circle',
-              symbolSize: 10,
-              label: {
-                normal: {show: false},
-                emphasis: {show: false}
-              }
+              valueDim: 'highest'
+            },
+            {
+              name: 'lowest value',
+              type: 'min',
+              valueDim: 'lowest'
+            },
+            {
+              name: 'average value on close',
+              type: 'average',
+              valueDim: 'close'
             }
           ],
-          {
-            name: 'min line on close',
-            type: 'min',
-            valueDim: 'close'
-          },
-          {
-            name: 'max line on close',
-            type: 'max',
-            valueDim: 'close'
+          tooltip: {
+            formatter: function (param) {
+              return param.name + '<br>' + (param.data.coord || '');
+            }
           }
-        ]
-      }
-    },
-    {
-      name: 'MA5',
-      type: 'line',
-      data: calculateMA(5),
-      smooth: true,
-      lineStyle: {
-        normal: {opacity: 0.5}
-      }
-    },
-    {
-      name: 'MA10',
-      type: 'line',
-      data: calculateMA(10),
-      smooth: true,
-      lineStyle: {
-        normal: {opacity: 0.5}
-      }
-    },
-    {
-      name: 'MA20',
-      type: 'line',
-      data: calculateMA(20),
-      smooth: true,
-      lineStyle: {
-        normal: {opacity: 0.5}
-      }
-    },
-    {
-      name: 'MA30',
-      type: 'line',
-      data: calculateMA(30),
-      smooth: true,
-      lineStyle: {
-        normal: {opacity: 0.5}
-      }
-    },
+        },
+        markLine: {
+          symbol: ['none', 'none'],
+          data: [
+            [
+              {
+                name: 'from lowest to highest',
+                type: 'min',
+                valueDim: 'lowest',
+                symbol: 'circle',
+                symbolSize: 10,
+                label: {
+                  normal: {show: false},
+                  emphasis: {show: false}
+                }
+              },
+              {
+                type: 'max',
+                valueDim: 'highest',
+                symbol: 'circle',
+                symbolSize: 10,
+                label: {
+                  normal: {show: false},
+                  emphasis: {show: false}
+                }
+              }
+            ],
+            {
+              name: 'min line on close',
+              type: 'min',
+              valueDim: 'close'
+            },
+            {
+              name: 'max line on close',
+              type: 'max',
+              valueDim: 'close'
+            }
+          ]
+        }
+      },
+      {
+        name: 'MA5',
+        type: 'line',
+        data: calculateMA(5, showData),
+        smooth: true,
+        lineStyle: {
+          normal: {opacity: 0.5}
+        }
+      },
+      {
+        name: 'MA10',
+        type: 'line',
+        data: calculateMA(10, showData),
+        smooth: true,
+        lineStyle: {
+          normal: {opacity: 0.5}
+        }
+      },
+      {
+        name: 'MA20',
+        type: 'line',
+        data: calculateMA(20, showData),
+        smooth: true,
+        lineStyle: {
+          normal: {opacity: 0.5}
+        }
+      },
+      {
+        name: 'MA30',
+        type: 'line',
+        data: calculateMA(30, showData),
+        smooth: true,
+        lineStyle: {
+          normal: {opacity: 0.5}
+        }
+      },
 
-  ]
-}
-
-function splitData(rawData) {
-  var categoryData = [];
-  var values = []
-  for (var i = 0; i < rawData.length; i++) {
-    categoryData.push(rawData[i].splice(0, 1)[0]);
-    values.push(rawData[i])
+    ]
   }
-  return {
-    categoryData: categoryData,
-    values: values
-  };
 }
 
-function calculateMA(dayCount) {
-  var result = [];
-  for (var i = 0, len = data0.values.length; i < len; i++) {
-    if (i < dayCount) {
-      result.push('-');
-      continue;
-    }
-    var sum = 0;
-    for (var j = 0; j < dayCount; j++) {
-      sum += data0.values[i - j][1];
-    }
-    result.push(sum / dayCount);
-  }
-  return result;
-}
+var myChart;
 
-type Props = {
-  tokens: Token[]
-};
-
-type State = {
-  fromToken: string,
-  toToken: string
-};
-
-export class CandleStick extends Component {
+class CandleStick extends Component {
   props: Props;
   state: State = {
-    fromToken: 'ether',
-    toToken: 'ether'
+    fromToken: "请选择",
+    toToken: "请选择",
+    showData: {
+      categoryData: [],
+      values: []
+    }
   };
+
   componentDidMount() {
-    // 基于准备好的dom，初始化echarts实例
-    var myChart = echarts.init(document.getElementById('main'));
-    // 绘制图表
-    myChart.setOption(option);
+    myChart = echarts.init(document.getElementById('main'));
   }
+
+  componentWillUpdate(nextProps, nextState){
+    if(nextState && nextState.showData && nextState.showData.categoryData.length > 0){
+      myChart.setOption(getOption(nextState.showData));
+    }
+  }
+
   render() {
     return (
       <div>
-        以
+        显示以
         <UnitDropdown
           value={this.state.fromToken}
-          options={['ether'].concat(this.props.tokens)}
+          options={this.props.tokens.map(token => token.symbol).sort()}
           onChange={this.onFromUnitChange}
         />
         兑换
         <UnitDropdown
           value={this.state.toToken}
-          options={['ether'].concat(this.props.tokens)}
+          options={this.props.tokens.map(token => token.symbol).sort()}
           onChange={this.onToUnitChange}
         />
 
         <div id="main" style={{ width: 900, height: 400, left: 100, top: 30 }}></div>
-
       </div>
     );
   }
@@ -361,19 +472,47 @@ export class CandleStick extends Component {
     this.setState({
       fromToken: unit
     });
+
+    if(this.state.fromToken != unit && this.state.toToken != '请选择'){
+      this.getData(unit, this.state.toToken)
+    }
   };
   onToUnitChange = (unit: string) => {
     this.setState({
       toToken: unit
     });
-  };
-}
 
-//export default CandleStick;
+    if(this.state.toToken != unit && this.state.fromToken != '请选择'){
+      this.getData(this.state.fromToken, unit)
+    }
+  };
+
+  /**
+   * //TODO 调用接口暂时测试
+   * @param fromToken
+   * @param toToken
+   * @returns {Promise.<void>}
+   */
+  async getData(fromToken, toToken){
+    // this.props.nodeLib.estimateGas(trans).then(gasLimit => {
+    //   if (this.state === state) {
+    //     this.setState({ gasLimit: formatGasLimit(gasLimit, state.unit) });
+    //   }
+    // });
+    if(this.state.showData == data0){
+      this.setState({showData: data1})
+    } else {
+      this.setState({showData: data0})
+    }
+  }
+}
 
 function mapStateToProps(state: AppState) {
   return {
-    tokens: getTokens(state)
+    tokens: getTokens(state),
+    nodeLib: getNodeLib(state),
+    node: getNodeConfig(state),
+    network: getNetworkConfig(state)
   };
 }
 

@@ -53,7 +53,7 @@ export default class UnitDropdown extends React.Component {
         </a>
         {this.state.expanded &&
           !isReadonly &&
-          <ul className="dropdown-menu dropdown-menu-right">
+          <ul className="dropdown-menu">
             {options.map(o =>
               <Option
                 key={o}
