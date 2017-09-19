@@ -77,6 +77,8 @@ export default class Footer extends Component {
                 <br />
                 <br />
                 <br />
+                <br />
+                <br />
                 {/*<h5>*/}
                 {/*<i aria-hidden="true">🙏</i> Support*/}
                 {/*</h5>*/}
