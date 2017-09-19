@@ -182,6 +182,8 @@ module.exports = {
     Cancel_Success: '取消成功',
     Cancel_Failed: '取消失败',
 
+    /* View Candles */
+
     /* Tokens */
     TOKEN_Addr: '地址： ',
     TOKEN_Symbol: '代币符号： ',
