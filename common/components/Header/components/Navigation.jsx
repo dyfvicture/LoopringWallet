@@ -7,20 +7,20 @@ import './Navigation.scss';
 
 const tabs = [
   {
-    name: 'NAV_GenerateWallet',
-    link: '/'
+    name: 'NAV_SendLoopringOrder',
+    link: 'send-loopring-order'
   },
   {
     name: 'NAV_SendEther',
     link: 'send-transaction'
   },
   {
-    name: 'NAV_SendLoopringOrder',
-    link: 'send-loopring-order'
-  },
-  {
     name: 'NAV_ViewLoopringOrderHistory',
     link: 'loopring-order-history'
+  },
+  {
+    name: 'NAV_GenerateWallet',
+    link: '/'
   }
 ];
 

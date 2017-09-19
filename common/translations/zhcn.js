@@ -159,6 +159,8 @@ module.exports = {
     SEND_loopring_sell_amount: '卖出代币数额： ',
     SEND_loopring_buy_token: '买入代币： ',
     SEND_loopring_buy_amount: '买入代币数额： ',
+    tx_fee: '路印交易费',
+    save_sharing: '分润比例',
 
     /*view Loopring order History*/
     View_Loopring_Order_History: '路印交易历史',

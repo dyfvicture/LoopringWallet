@@ -11,9 +11,11 @@ import {
   CustomMessage,
   DataField,
   GasField,
-  ConfirmationModal
+  OrderSideBar,
+  ConfirmationModal,
+  LoopringTxFee,
+  SaveSharing
 } from './components';
-import { BalanceSidebar } from 'components';
 import type { State as AppState } from 'reducers';
 import { connect } from 'react-redux';
 import BaseWallet from 'libs/wallet/base';
@@ -62,6 +64,8 @@ type State = {
   showTxConfirm: boolean,
   showPreTxConfirm: boolean,
   showAllow: boolean,
+  loopringTxFee: string,
+  savingShare: string,
   pretransaction: ?BroadcastTransaction,
   transaction: ?BroadcastTransaction
 };
@@ -106,6 +110,8 @@ export class SendExchange extends React.Component {
     showTxConfirm: false,
     showPreTxConfirm: false,
     showAllow: false,
+    loopringTxFee: '2',
+    savingShare: '50',
     transaction: null,
     pretransaction: null
   };
@@ -140,11 +146,12 @@ export class SendExchange extends React.Component {
       data,
       readOnly,
       showTxConfirm,
-      showPreTxConfirm,
       showAllow,
       tokenSellAllowance,
       tokenAllowance,
       pretransaction,
+      loopringTxFee,
+      savingShare,
       transaction
     } = this.state;
     const customMessage = customMessages.find(m => m.to === to);
@@ -157,15 +164,20 @@ export class SendExchange extends React.Component {
 
             {unlocked &&
               <article className="row">
-                {'' /* <!-- Sidebar --> */}
-                <section className="col-sm-4">
-                  <div style={{ maxWidth: 350 }}>
-                    <BalanceSidebar />
+                <section className="col-sm-5">
+                  <div style={{ maxWidth: 720 }}>
+                    <OrderSideBar
+                      sellToken={this.props.tokens.find(
+                        x => x.symbol === this.state.sellUnit
+                      )}
+                      buyToken={this.props.tokens.find(
+                        x => x.symbol === this.state.buyUnit
+                      )}
+                    />
                     <hr />
                   </div>
                 </section>
-
-                <section className="col-sm-8">
+                <section className="col-sm-7">
                   <div className="row form-group">
                     <h4 className="col-xs-12">
                       {translate('SEND_trans')}
@@ -191,6 +203,18 @@ export class SendExchange extends React.Component {
                       .sort()}
                     onChange={readOnly ? void 0 : this.onBuyAmountChange}
                   />
+
+                  <LoopringTxFee
+                    value={loopringTxFee}
+                    onChange={this.onLoopringTxFeeChange}
+                  />
+
+                  <SaveSharing
+                    value={savingShare}
+                    onChange={this.onSaveShareChange}
+                  />
+                  <br />
+                  <br />
                   <div className="form-group">
                     <a
                       className="btn btn-primary btn-block col-sm-11"
@@ -201,7 +225,7 @@ export class SendExchange extends React.Component {
                   </div>
                 </section>
                 {showAllow &&
-                  <section className="col-sm-8">
+                  <section className="col-sm-7">
                     <div className="row form-group">
                       <h4 className="col-xs-12">
                         {translate('Approve_Allowance')}
@@ -281,16 +305,6 @@ export class SendExchange extends React.Component {
               </article>}
           </main>
         </div>
-        {pretransaction &&
-          showPreTxConfirm &&
-          <ConfirmationModal
-            wallet={this.props.wallet}
-            node={this.props.node}
-            signedTransaction={pretransaction.signedTx}
-            allowanceValue="0"
-            onCancel={this.cancelPreTx}
-            onConfirm={this.confirmPreTx}
-          />}
         {transaction &&
           showTxConfirm &&
           <ConfirmationModal
@@ -326,7 +340,9 @@ export class SendExchange extends React.Component {
         value: valueToHex(this.state.value)
       };
     }
-    const token = this.props.tokens.find(x => x.symbol === this.state.unit);
+    const token = this.props.tokens.find(
+      x => x.symbol === this.state.allowUnit
+    );
     if (!token) {
       throw new Error('No matching token');
     }
@@ -543,7 +559,7 @@ export class SendExchange extends React.Component {
         }
       }
     } catch (err) {
-      this.props.showNotification('danger', err.message, 5000);
+      this.props.showNotification('danger', err.message, 2000);
     }
   };
 
@@ -563,27 +579,6 @@ export class SendExchange extends React.Component {
 
   cancelTx = () => {
     this.setState({ showTxConfirm: false });
-  };
-  cancelPreTx = () => {
-    this.setState({ showPreTxConfirm: false });
-  };
-
-  confirmPreTx = async (rawtx: string, tx: EthTx) => {
-    try {
-      const hash = await this.props.nodeLib.sendSingedTransaction(rawtx);
-      let isCompleted = await this.props.nodeLib.checkTxisinBlock(hash);
-      const sheduler = setInterval(async () => {
-        if (!isCompleted) {
-          isCompleted = await this.props.nodeLib.checkTxisinBlock(hash);
-        } else {
-          clearInterval(sheduler);
-        }
-      }, 1000);
-      this.setState({ showTxConfirm: true, showPreTxConfirm: false });
-    } catch (err) {
-      this.setState({ showTxConfirm: false, showPreTxConfirm: false });
-      this.props.showNotification('danger', err.message, 5000);
-    }
   };
 
   confirmTx = async (rawtx: string, tx: EthTx) => {
@@ -611,7 +606,7 @@ export class SendExchange extends React.Component {
       });
     } catch (err) {
       this.setState({ showTxConfirm: false, showPreTxConfirm: false });
-      this.props.showNotification('danger', err.message, 5000);
+      this.props.showNotification('danger', err.message, 2000);
     }
   };
 
@@ -655,6 +650,47 @@ export class SendExchange extends React.Component {
       this.props.showNotification(
         'warning',
         'insufficient token allowance',
+        1000
+      );
+    }
+  };
+
+  onLoopringTxFeeChange = (value: string) => {
+    if (Number(value) === 0) {
+      this.setState({ loopringTxFee: value, savingShare: '100' });
+      return;
+    }
+
+    if (Number(value) > 0 && isFinite(Number(value))) {
+      this.setState({ loopringTxFee: value });
+      return;
+    }
+
+    this.props.showNotification('warning', 'illegal input data', 1000);
+  };
+
+  onSaveShareChange = (value: string) => {
+    const { loopringTxFee } = this.state;
+
+    if (Number(loopringTxFee) > 0) {
+      if (Number(value) > 100) {
+        this.props.showNotification(
+          'warning',
+          'should not be bigger than 100%',
+          1000
+        );
+        return;
+      }
+
+      if (Number(value) >= 0 && isFinite(Number(value))) {
+        this.setState({ savingShare: value });
+        return;
+      }
+      this.props.showNotification('warning', 'illegal input data', 1000);
+    } else {
+      this.props.showNotification(
+        'warning',
+        'while loopring tx fee is Zero, the savesharing is set to 100% by default',
         1000
       );
     }

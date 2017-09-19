@@ -5,11 +5,11 @@ export default class BaseServer {
     throw new Error('Implement me');
   }
 
-  async sendAllowanceTransactions(transactions: [string]) {
+  async sendAllowanceTransactions(transactions: string[]) {
     throw new Error('Implement me');
   }
 
-  async getLoopringOrders(address: string): Promise<[LoopingOrder]> {
+  async getLoopringOrders(address: string): Promise<LoopingOrder[]> {
     throw new Error('Implement me');
   }
 
